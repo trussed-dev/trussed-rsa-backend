@@ -967,22 +967,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rsa-backend"
-version = "0.1.0"
-dependencies = [
- "delog",
- "env_logger",
- "heapless-bytes",
- "hex-literal",
- "num-bigint-dig",
- "rand",
- "rsa",
- "serde",
- "test-log",
- "trussed",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1270,6 +1254,22 @@ dependencies = [
  "sha-1",
  "sha2 0.9.9",
  "zeroize",
+]
+
+[[package]]
+name = "trussed-rsa-backend"
+version = "0.1.0"
+dependencies = [
+ "delog",
+ "env_logger",
+ "heapless-bytes",
+ "hex-literal",
+ "num-bigint-dig",
+ "rand",
+ "rsa",
+ "serde",
+ "test-log",
+ "trussed",
 ]
 
 [[package]]

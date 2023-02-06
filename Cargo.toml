@@ -2,8 +2,11 @@
 name = "trussed-rsa-backend"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Trussed backend adding support for the RSA algorithm using an allocator"
+authors = ["Nitrokey GmbH <info@nitrokey.com>"]
+license = "LGPL-3.0-only"
+rust-version = "1.66"
+keywords = ["trussed", "rsa", "no-std"]
 
 [dependencies]
 delog = "0.1.6"
