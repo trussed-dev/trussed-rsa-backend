@@ -150,7 +150,7 @@ fn deserialize_key(
     match request.format {
         KeySerialization::Pkcs8Der => deserialize_pkcs_key(keystore, request, bits, kind),
         KeySerialization::RsaParts => deserialize_parts_key(keystore, request, bits, kind),
-        _ => return Err(Error::InvalidSerializationFormat),
+        _ => Err(Error::InvalidSerializationFormat),
     }
 }
 

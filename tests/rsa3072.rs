@@ -113,7 +113,7 @@ fn rsa3072pkcs_sign_verify() {
         let hash_prefix = hex!("3041 300d 0609 608648016503040202 0500 0430");
         let message = [1u8, 2u8, 3u8];
         use rsa::sha2::digest::Digest;
-        let digest = Sha384::digest(&message);
+        let digest = Sha384::digest(message);
         let digest_to_sign: Vec<u8> = hash_prefix.into_iter().chain(digest).collect();
         let signature = syscall!(client.sign_rsa3072pkcs(sk, &digest_to_sign)).signature;
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
@@ -160,7 +160,7 @@ fn rsa3072pkcs_inject() {
         let hash_prefix = hex!("3041 300d 0609 608648016503040202 0500 0430");
         let message = [1u8, 2u8, 3u8];
         use rsa::sha2::digest::Digest;
-        let digest = Sha384::digest(&message);
+        let digest = Sha384::digest(message);
         let digest_to_sign: Vec<u8> = hash_prefix.into_iter().chain(digest).collect();
 
         let signature = syscall!(client.sign_rsa3072pkcs(sk, &digest_to_sign)).signature;

@@ -113,7 +113,7 @@ fn rsa4096pkcs_sign_verify() {
         let hash_prefix = hex!("3051 300d 0609 608648016503040203 0500 0440");
         let message = [1u8, 2u8, 3u8];
         use rsa::sha2::digest::Digest;
-        let digest = Sha512::digest(&message);
+        let digest = Sha512::digest(message);
         let digest_to_sign: Vec<u8> = hash_prefix.into_iter().chain(digest).collect();
         let signature = syscall!(client.sign_rsa4096pkcs(sk, &digest_to_sign)).signature;
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
@@ -161,7 +161,7 @@ fn rsa4096pkcs_inject() {
         let hash_prefix = hex!("3051 300d 0609 608648016503040203 0500 0440");
         let message = [1u8, 2u8, 3u8];
         use rsa::sha2::digest::Digest;
-        let digest = Sha512::digest(&message);
+        let digest = Sha512::digest(message);
         let digest_to_sign: Vec<u8> = hash_prefix.into_iter().chain(digest).collect();
 
         let signature = syscall!(client.sign_rsa4096pkcs(sk, &digest_to_sign)).signature;
