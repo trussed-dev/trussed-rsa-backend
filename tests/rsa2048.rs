@@ -1,5 +1,7 @@
 use rsa::sha2::Sha256;
+use rsa::Pkcs1v15Encrypt;
 use rsa::Pkcs1v15Sign;
+use rsa::PublicKeyParts;
 use trussed::client::CryptoClient;
 use trussed::syscall;
 use trussed::types::KeyId;
@@ -84,6 +86,33 @@ fn rsa2048pkcs_deserialize_key() {
 
         // This assumes we don't ever get a key with ID 0
         assert_ne!(deserialized_key_id, KeyId::from_special(0));
+    })
+}
+
+#[test_log::test]
+fn rsa2048pkcs_encrypt_decrypt() {
+    client::get(|client| {
+        let sk = syscall!(client.generate_rsa2048pkcs_private_key(Volatile)).key;
+        let message = [1u8, 2u8, 3u8];
+        let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
+        let rs_pks_buffer =
+            syscall!(client.serialize_rsa2048pkcs_key(pk, KeySerialization::RsaParts))
+                .serialized_key;
+        let parsed: RsaPublicParts = trussed::postcard_deserialize(&rs_pks_buffer).unwrap();
+        let pubkey = rsa::RsaPublicKey::new_unchecked(
+            BigUint::from_bytes_be(parsed.n),
+            BigUint::from_bytes_be(parsed.e),
+        );
+        assert_eq!(pubkey.size(), 2048 / 8);
+        let encrypted = pubkey
+            .encrypt(&mut rand::thread_rng(), Pkcs1v15Encrypt, &message)
+            .unwrap();
+
+        let decrypted = syscall!(client.decrypt_rsa2048pkcs(sk, &encrypted))
+            .plaintext
+            .unwrap();
+
+        assert_eq!(decrypted, message);
     })
 }
 

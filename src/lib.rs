@@ -480,6 +480,14 @@ mod client_impl {
                 SignatureSerialization::Raw,
             )
         }
+
+        fn decrypt_rsa2048pkcs<'c>(
+            &'c mut self,
+            key: KeyId,
+            ciphertext: &[u8],
+        ) -> ClientResult<'c, reply::Decrypt, Self> {
+            self.decrypt(Mechanism::Rsa2048Pkcs1v15, key, ciphertext, &[], &[], &[])
+        }
     }
 
     impl<C: CryptoClient> Rsa3072Pkcs1v15 for C {}
@@ -557,6 +565,14 @@ mod client_impl {
                 SignatureSerialization::Raw,
             )
         }
+
+        fn decrypt_rsa3072pkcs<'c>(
+            &'c mut self,
+            key: KeyId,
+            ciphertext: &[u8],
+        ) -> ClientResult<'c, reply::Decrypt, Self> {
+            self.decrypt(Mechanism::Rsa3072Pkcs1v15, key, ciphertext, &[], &[], &[])
+        }
     }
 
     impl<C: CryptoClient> Rsa4096Pkcs1v15 for C {}
@@ -633,6 +649,14 @@ mod client_impl {
                 signature,
                 SignatureSerialization::Raw,
             )
+        }
+
+        fn decrypt_rsa4096pkcs<'c>(
+            &'c mut self,
+            key: KeyId,
+            ciphertext: &[u8],
+        ) -> ClientResult<'c, reply::Decrypt, Self> {
+            self.decrypt(Mechanism::Rsa4096Pkcs1v15, key, ciphertext, &[], &[], &[])
         }
     }
 }

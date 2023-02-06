@@ -21,6 +21,7 @@ trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "effa378c4
 delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
+rand = "0.8.5"
 
 [features]
 
