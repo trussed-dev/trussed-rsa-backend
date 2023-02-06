@@ -46,7 +46,7 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
-    ///# use rsa_backend::*;
+    ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# mod client {
     ///#     include!("../tests/client/mod.rs");
@@ -165,7 +165,7 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
-    ///# use rsa_backend::*;
+    ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# mod client {
     ///#     include!("../tests/client/mod.rs");
@@ -284,7 +284,7 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
-    ///# use rsa_backend::*;
+    ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# mod client {
     ///#     include!("../tests/client/mod.rs");

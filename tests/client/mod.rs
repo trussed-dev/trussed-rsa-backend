@@ -1,5 +1,4 @@
-
-use rsa_backend::SoftwareRsa;
+use trussed_rsa_backend::SoftwareRsa;
 
 pub struct Dispatcher;
 pub enum BackendIds {

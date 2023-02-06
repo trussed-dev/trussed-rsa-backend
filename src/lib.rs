@@ -1,4 +1,4 @@
-// #![no_std]
+#![no_std]
 
 use heapless_bytes::Bytes;
 use num_bigint_dig::traits::ModInverse;
@@ -112,7 +112,7 @@ fn deserialize_parts_key(
 ) -> Result<reply::DeserializeKey, Error> {
     let parsed: RsaPublicParts = postcard_deserialize(&request.serialized_key).map_err(|_err| {
         error!("Failed to deserialize key parts");
-        dbg!(Error::InvalidSerializedKey)
+        Error::InvalidSerializedKey
     })?;
     let n = BigUint::from_bytes_be(parsed.n);
     let e = BigUint::from_bytes_be(parsed.e);
