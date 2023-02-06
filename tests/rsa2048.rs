@@ -1,8 +1,7 @@
 use rsa::sha2::Sha256;
-use rsa::Pkcs1v15Encrypt;
-use rsa::Pkcs1v15Sign;
-use rsa::PublicKeyParts;
+use rsa::{Pkcs1v15Encrypt, Pkcs1v15Sign, PublicKeyParts};
 use trussed::client::CryptoClient;
+use trussed::postcard_deserialize;
 use trussed::syscall;
 use trussed::types::KeyId;
 use trussed::types::KeySerialization;
@@ -59,30 +58,23 @@ fn rsa2048pkcs_serialize_key() {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
 
-        let serialized_key =
-            syscall!(client.serialize_rsa2048pkcs_key(pk, KeySerialization::Pkcs8Der))
-                .serialized_key;
+        let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
 
         assert!(!serialized_key.is_empty());
     })
 }
 
 #[test_log::test]
-fn rsa2048pkcs_deserialize_key() {
+fn rsa2048_deserialize_key() {
     client::get(|client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
-        let serialized_key =
-            syscall!(client.serialize_rsa2048pkcs_key(pk, KeySerialization::Pkcs8Der))
-                .serialized_key;
+        let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
+        let public_key = postcard_deserialize(&serialized_key).unwrap();
         let location = StorageAttributes::new().set_persistence(Volatile);
 
-        let deserialized_key_id = syscall!(client.deserialize_rsa2048pkcs_key(
-            &serialized_key,
-            KeySerialization::Pkcs8Der,
-            location
-        ))
-        .key;
+        let deserialized_key_id =
+            syscall!(client.deserialize_rsa2048_public_key(public_key, location)).key;
 
         // This assumes we don't ever get a key with ID 0
         assert_ne!(deserialized_key_id, KeyId::from_special(0));
@@ -95,10 +87,8 @@ fn rsa2048pkcs_encrypt_decrypt() {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Volatile)).key;
         let message = [1u8, 2u8, 3u8];
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
-        let rs_pks_buffer =
-            syscall!(client.serialize_rsa2048pkcs_key(pk, KeySerialization::RsaParts))
-                .serialized_key;
-        let parsed: RsaPublicParts = trussed::postcard_deserialize(&rs_pks_buffer).unwrap();
+        let rs_pks_buffer = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
+        let parsed: RsaPublicParts = postcard_deserialize(&rs_pks_buffer).unwrap();
         let pubkey = rsa::RsaPublicKey::new_unchecked(
             BigUint::from_bytes_be(parsed.n),
             BigUint::from_bytes_be(parsed.e),
@@ -134,7 +124,6 @@ fn rsa2048pkcs_sign_verify() {
         assert!(verify_ok);
     })
 }
-
 #[test_log::test]
 fn rsa2048pkcs_inject() {
     client::get(|client| {

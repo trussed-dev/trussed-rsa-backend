@@ -41,26 +41,41 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
         )
     }
 
-    fn serialize_rsa2048pkcs_key(
-        &mut self,
-        key: KeyId,
-        format: KeySerialization,
-    ) -> ClientResult<'_, reply::SerializeKey, Self> {
-        self.serialize_key(Mechanism::Rsa2048Pkcs1v15, key, format)
+    /// Serializes an RSA 2048 bit key.
+    ///
+    /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
+    /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
+    /// ```
+    ///# use rsa_backend::*;
+    ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
+    ///# mod client {
+    ///#     include!("../tests/client/mod.rs");
+    ///# }
+    ///# client::get(|client| {
+    ///# let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
+    ///# let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
+    /// let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
+    /// let public_key: RsaPublicParts = postcard_deserialize(&serialized_key).unwrap();
+    ///# })
+    ///```
+    fn serialize_rsa2048_key(&mut self, key: KeyId) -> ClientResult<'_, reply::SerializeKey, Self> {
+        self.serialize_key(Mechanism::Rsa2048Pkcs1v15, key, KeySerialization::RsaParts)
     }
 
-    fn deserialize_rsa2048pkcs_key<'c>(
+    fn deserialize_rsa2048_public_key<'c>(
         &'c mut self,
-        serialized_key: &[u8],
-        format: KeySerialization,
+        key_parts: RsaPublicParts,
         attributes: StorageAttributes,
     ) -> ClientResult<'c, reply::DeserializeKey, Self> {
-        self.deserialize_key(
-            Mechanism::Rsa2048Pkcs1v15,
-            serialized_key,
-            format,
+        self.request(DeserializeKey {
+            mechanism: Mechanism::Rsa2048Pkcs1v15,
+            serialized_key: postcard_serialize_bytes(&key_parts).map_err(|_err| {
+                error!("Failed to serialize key parts: {:?}", _err);
+                ClientError::DataTooLarge
+            })?,
+            format: KeySerialization::RsaParts,
             attributes,
-        )
+        })
     }
 
     fn sign_rsa2048pkcs<'c>(
@@ -89,6 +104,22 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
             signature,
             SignatureSerialization::Raw,
         )
+    }
+
+    fn unsafe_inject_rsa2048<'c>(
+        &'c mut self,
+        key_parts: RsaImportFormat,
+        attributes: StorageAttributes,
+    ) -> ClientResult<'c, reply::UnsafeInjectKey, Self> {
+        self.request(UnsafeInjectKey {
+            mechanism: Mechanism::Rsa2048Pkcs1v15,
+            raw_key: postcard_serialize_bytes(&key_parts).map_err(|_err| {
+                error!("Failed to serialize key parts: {:?}", _err);
+                ClientError::DataTooLarge
+            })?,
+            attributes,
+            format: KeySerialization::RsaParts,
+        })
     }
 
     fn decrypt_rsa2048pkcs<'c>(
@@ -129,26 +160,41 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
         )
     }
 
-    fn serialize_rsa3072pkcs_key(
-        &mut self,
-        key: KeyId,
-        format: KeySerialization,
-    ) -> ClientResult<'_, reply::SerializeKey, Self> {
-        self.serialize_key(Mechanism::Rsa3072Pkcs1v15, key, format)
+    /// Serializes an RSA 3072 bit key.
+    ///
+    /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
+    /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
+    /// ```
+    ///# use rsa_backend::*;
+    ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
+    ///# mod client {
+    ///#     include!("../tests/client/mod.rs");
+    ///# }
+    ///# client::get(|client| {
+    ///# let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
+    ///# let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
+    /// let serialized_key = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
+    /// let public_key: RsaPublicParts = postcard_deserialize(&serialized_key).unwrap();
+    ///# })
+    ///```
+    fn serialize_rsa3072_key(&mut self, key: KeyId) -> ClientResult<'_, reply::SerializeKey, Self> {
+        self.serialize_key(Mechanism::Rsa3072Pkcs1v15, key, KeySerialization::RsaParts)
     }
 
-    fn deserialize_rsa3072pkcs_key<'c>(
+    fn deserialize_rsa3072_public_key<'c>(
         &'c mut self,
-        serialized_key: &[u8],
-        format: KeySerialization,
+        key_parts: RsaPublicParts,
         attributes: StorageAttributes,
     ) -> ClientResult<'c, reply::DeserializeKey, Self> {
-        self.deserialize_key(
-            Mechanism::Rsa3072Pkcs1v15,
-            serialized_key,
-            format,
+        self.request(DeserializeKey {
+            mechanism: Mechanism::Rsa3072Pkcs1v15,
+            serialized_key: postcard_serialize_bytes(&key_parts).map_err(|_err| {
+                error!("Failed to serialize key parts: {:?}", _err);
+                ClientError::DataTooLarge
+            })?,
+            format: KeySerialization::RsaParts,
             attributes,
-        )
+        })
     }
 
     fn sign_rsa3072pkcs<'c>(
@@ -177,6 +223,22 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
             signature,
             SignatureSerialization::Raw,
         )
+    }
+
+    fn unsafe_inject_rsa3072<'c>(
+        &'c mut self,
+        key_parts: RsaImportFormat,
+        attributes: StorageAttributes,
+    ) -> ClientResult<'c, reply::UnsafeInjectKey, Self> {
+        self.request(UnsafeInjectKey {
+            mechanism: Mechanism::Rsa3072Pkcs1v15,
+            raw_key: postcard_serialize_bytes(&key_parts).map_err(|_err| {
+                error!("Failed to serialize key parts: {:?}", _err);
+                ClientError::DataTooLarge
+            })?,
+            attributes,
+            format: KeySerialization::RsaParts,
+        })
     }
 
     fn decrypt_rsa3072pkcs<'c>(

@@ -110,7 +110,7 @@ fn rsa4096pkcs_encrypt_decrypt() {
 fn rsa4096pkcs_sign_verify() {
     client::get(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Volatile)).key;
-        let hash_prefix = hex!("3031 300d 0609 608648016503040201 0500 0420");
+        let hash_prefix = hex!("3051 300d 0609 608648016503040203 0500 0440");
         let message = [1u8, 2u8, 3u8];
         use rsa::sha2::digest::Digest;
         let digest = Sha512::digest(&message);
