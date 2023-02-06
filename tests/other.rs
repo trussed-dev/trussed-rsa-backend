@@ -1,12 +1,13 @@
+#![cfg(feature = "virt")]
+
 ///! Test that the core backend is still reachable.
 ///! Tests imported from the trussed repo
-mod client;
-
 use trussed::{client::CertificateClient as _, syscall, try_syscall, types::Location::*};
+use trussed_rsa_backend::virt;
 
 #[test]
 fn certificate_client() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let fake_der = &[1u8, 2, 3];
         let id = syscall!(client.write_certificate(Volatile, fake_der)).id;
 

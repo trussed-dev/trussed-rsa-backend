@@ -1,4 +1,5 @@
-use trussed_rsa_backend::SoftwareRsa;
+/// Wrapper around [`trussed::virt`][] that provides clients with both the core backend and the [`SoftwareRsa`](crate::SoftwareRsa) backend.
+use crate::SoftwareRsa;
 
 pub struct Dispatcher;
 pub enum BackendIds {
@@ -18,19 +19,39 @@ impl<P: Platform> Dispatch<P> for Dispatcher {
     }
 }
 
+use std::path::PathBuf;
 use trussed::{
     backend::{Backend, BackendId, Dispatch},
-    virt::{self, Client, Ram},
+    virt::{self, Client, Filesystem, Ram, StoreProvider},
     Platform,
 };
 
-pub fn get<R, F: FnOnce(&mut Client<Ram, Dispatcher>) -> R>(test: F) -> R {
-    virt::with_platform(Ram::default(), |platform| {
+pub fn with_client<S, R, F>(store: S, f: F) -> R
+where
+    F: FnOnce(&mut Client<S, Dispatcher>) -> R,
+    S: StoreProvider,
+{
+    virt::with_platform(store, |platform| {
         platform.run_client_with_backends(
             "rsa tests",
             Dispatcher,
             &[BackendId::Custom(BackendIds::SoftwareRsa), BackendId::Core],
-            |mut client| test(&mut client),
+            |mut client| f(&mut client),
         )
     })
+}
+
+pub fn with_fs_client<P, R, F>(internal: P, f: F) -> R
+where
+    F: FnOnce(&mut Client<Filesystem, Dispatcher>) -> R,
+    P: Into<PathBuf>,
+{
+    with_client(Filesystem::new(internal), f)
+}
+
+pub fn with_ram_client<R, F>(f: F) -> R
+where
+    F: FnOnce(&mut Client<Ram, Dispatcher>) -> R,
+{
+    with_client(Ram::default(), f)
 }

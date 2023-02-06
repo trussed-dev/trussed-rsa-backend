@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 use heapless_bytes::Bytes;
 use num_bigint_dig::traits::ModInverse;
@@ -20,6 +20,9 @@ use trussed::{
     types::{CoreContext, KeySerialization, Mechanism, Signature, SignatureSerialization},
     Error,
 };
+
+#[cfg(feature = "virt")]
+pub mod virt;
 
 #[macro_use]
 extern crate delog;

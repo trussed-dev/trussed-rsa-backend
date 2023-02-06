@@ -20,13 +20,16 @@ trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "effa378c4
 [dev-dependencies]
 hex-literal = "0.3.4"
 
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "effa378c4709a2ec6119673894ed68a18d8e7391", features = ["virt"] }
 delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
 rand = "0.8.5"
 
 [features]
+
+default = []
+virt = ["std","trussed/virt"]
+std = []
 
 log-all = []
 log-none = []

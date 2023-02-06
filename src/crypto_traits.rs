@@ -46,17 +46,17 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
+    ///# #[cfg(feature = "virt")]
+    ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# mod client {
-    ///#     include!("../tests/client/mod.rs");
-    ///# }
-    ///# client::get(|client| {
+    ///# virt::with_ram_client(|client| {
     ///# let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
     /// let public_key: RsaPublicParts = postcard_deserialize(&serialized_key).unwrap();
     ///# })
+    ///# }
     ///```
     fn serialize_rsa2048_key(&mut self, key: KeyId) -> ClientResult<'_, reply::SerializeKey, Self> {
         self.serialize_key(Mechanism::Rsa2048Pkcs1v15, key, KeySerialization::RsaParts)
@@ -165,17 +165,17 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
+    ///# #[cfg(feature = "virt")]
+    ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# mod client {
-    ///#     include!("../tests/client/mod.rs");
-    ///# }
-    ///# client::get(|client| {
+    ///# virt::with_ram_client(|client| {
     ///# let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
     /// let public_key: RsaPublicParts = postcard_deserialize(&serialized_key).unwrap();
     ///# })
+    ///# }
     ///```
     fn serialize_rsa3072_key(&mut self, key: KeyId) -> ClientResult<'_, reply::SerializeKey, Self> {
         self.serialize_key(Mechanism::Rsa3072Pkcs1v15, key, KeySerialization::RsaParts)
@@ -284,17 +284,17 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
     /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a postcard-serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
+    ///# #[cfg(feature = "virt")]
+    ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# mod client {
-    ///#     include!("../tests/client/mod.rs");
-    ///# }
-    ///# client::get(|client| {
+    ///# virt::with_ram_client(|client| {
     ///# let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa4096_key(pk)).serialized_key;
     /// let public_key: RsaPublicParts = postcard_deserialize(&serialized_key).unwrap();
     ///# })
+    ///# }
     ///```
     fn serialize_rsa4096_key(&mut self, key: KeyId) -> ClientResult<'_, reply::SerializeKey, Self> {
         self.serialize_key(Mechanism::Rsa4096Pkcs1v15, key, KeySerialization::RsaParts)

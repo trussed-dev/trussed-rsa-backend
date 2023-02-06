@@ -1,3 +1,5 @@
+#![cfg(feature = "virt")]
+
 use rsa::sha2::Sha512;
 use rsa::{Pkcs1v15Encrypt, Pkcs1v15Sign, PublicKeyParts};
 use trussed::client::CryptoClient;
@@ -16,13 +18,11 @@ use hex_literal::hex;
 use num_bigint_dig::BigUint;
 use rsa::{PublicKey, RsaPrivateKey};
 
-mod client;
-
 // Tests below can be run on a PC using the "virt" feature
 
 #[test_log::test]
 fn rsa4096pkcs_generate_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
 
         // This assumes we don't ever get a key with ID 0
@@ -32,7 +32,7 @@ fn rsa4096pkcs_generate_key() {
 
 #[test_log::test]
 fn rsa4096pkcs_derive_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
 
@@ -43,7 +43,7 @@ fn rsa4096pkcs_derive_key() {
 
 #[test_log::test]
 fn rsa4096pkcs_exists_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
         let key_exists =
             syscall!(client.exists(trussed::types::Mechanism::Rsa4096Pkcs1v15, sk)).exists;
@@ -54,7 +54,7 @@ fn rsa4096pkcs_exists_key() {
 
 #[test_log::test]
 fn rsa4096pkcs_serialize_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
 
@@ -66,7 +66,7 @@ fn rsa4096pkcs_serialize_key() {
 
 #[test_log::test]
 fn rsa4096_deserialize_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
         let serialized_key = syscall!(client.serialize_rsa4096_key(pk)).serialized_key;
@@ -83,7 +83,7 @@ fn rsa4096_deserialize_key() {
 
 #[test_log::test]
 fn rsa4096pkcs_encrypt_decrypt() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Volatile)).key;
         let message = [1u8, 2u8, 3u8];
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
@@ -108,7 +108,7 @@ fn rsa4096pkcs_encrypt_decrypt() {
 
 #[test_log::test]
 fn rsa4096pkcs_sign_verify() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa4096pkcs_private_key(Volatile)).key;
         let hash_prefix = hex!("3051 300d 0609 608648016503040203 0500 0440");
         let message = [1u8, 2u8, 3u8];
@@ -127,7 +127,7 @@ fn rsa4096pkcs_sign_verify() {
 
 #[test_log::test]
 fn rsa4096pkcs_inject() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let n  = hex!("adc511a420f48ffcb2c62f1a5113fe4e7f3efa20b0c6e711b93aca7e5ad662ba089ac27e9a1ae4cda8032d0b1ec8e3f719f6d3a04e1572a35caec922b439d53324b020d07e3ff70de2fb53409d26af1034b8f8fbf3776b1decd515af1298d98a671e3b2fd871f1b38c8917ed15c8732f96f75166df782d190913653a21da5d0647abc63c5b157910c455a4ac10d8ca3123ccdb98baf947e3a9ab9bff34fa9b0a19ab61f82c560ca46bad10391e49ef2bf5f01f198db12225338d68b0b18eaab962686e6a445b943952981fdf4c6f8135b6e86b1658d930df7fc2288c178401784a90977d1cf4444b401dabe2ebc6448979f74930aab7933a2fadc4c7b96c2fc65e85b2c49f0fa48381928ba64466b7c13303f8fa4b4afd5ad98e9d0990211a2b80caf6b071301e63d9f46b5d52016ec239e983efc1f6a0cd39a1fb9ae91483cc63f1467d13550802aab45ee03223ab1c13bdd82d79c4575f1bc4179ee9d7183534dd27b0a240497b951338fd29f863ff769140a4251219e61ef1ec8274d48431b58f7201c9069499488ac6c9e13e1ed790df14987760ef568a9fae55fd14e4e85232a345e265fb0ace01a0dc10a5390f67c9dba1de7d90b5b542eaaa370d935e153c97e82fe5108d9065991ad65181b2a2136d1474f91b3b85167cd3c04bdc6d144c4034b96b6be93b33c6d14bb511ffc04659cf807cbfd5039f68fb2ebe8ae9");
         let e = hex!("010001");
         let d  = hex!("974447d9127f12a0ad976c0582b2dedbc255363422eee2d340e576c48b9ab892ad4edb248e4dff032fd0a3f35c37108b5864cf506ae8acc49cb7e28b7d4c22d5c48835e8891e7197fb114125ac27b2996eebde82a52c3d68ed7388cec067a267a2e06431803fa061e662a91b4fad10e84a88bca9cabab8b7647927d37508bb95edea1045161d19288960ec5a84c7d32af7b92b28470b1d93876dc5fc61480e92ba49c09ce32b7d11dc51e91f6fc87895522057524d4ff7235f3f27f5387bb30e7225ea88433d5d489127b0071868b097ebc363052f0ed2469cd68da9760709a887705b0f249756");

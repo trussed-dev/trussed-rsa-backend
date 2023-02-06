@@ -1,3 +1,5 @@
+#![cfg(feature = "virt")]
+
 use rsa::sha2::Sha384;
 use rsa::{Pkcs1v15Encrypt, Pkcs1v15Sign, PublicKeyParts};
 use trussed::client::CryptoClient;
@@ -16,13 +18,11 @@ use hex_literal::hex;
 use num_bigint_dig::BigUint;
 use rsa::{PublicKey, RsaPrivateKey};
 
-mod client;
-
 // Tests below can be run on a PC using the "virt" feature
 
 #[test_log::test]
 fn rsa3072pkcs_generate_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
 
         // This assumes we don't ever get a key with ID 0
@@ -32,7 +32,7 @@ fn rsa3072pkcs_generate_key() {
 
 #[test_log::test]
 fn rsa3072pkcs_derive_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
 
@@ -43,7 +43,7 @@ fn rsa3072pkcs_derive_key() {
 
 #[test_log::test]
 fn rsa3072pkcs_exists_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
         let key_exists =
             syscall!(client.exists(trussed::types::Mechanism::Rsa3072Pkcs1v15, sk)).exists;
@@ -54,7 +54,7 @@ fn rsa3072pkcs_exists_key() {
 
 #[test_log::test]
 fn rsa3072pkcs_serialize_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
 
@@ -66,7 +66,7 @@ fn rsa3072pkcs_serialize_key() {
 
 #[test_log::test]
 fn rsa3072_deserialize_key() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
         let serialized_key = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
@@ -83,7 +83,7 @@ fn rsa3072_deserialize_key() {
 
 #[test_log::test]
 fn rsa3072pkcs_encrypt_decrypt() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Volatile)).key;
         let message = [1u8, 2u8, 3u8];
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
@@ -108,7 +108,7 @@ fn rsa3072pkcs_encrypt_decrypt() {
 
 #[test_log::test]
 fn rsa3072pkcs_sign_verify() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Volatile)).key;
         let hash_prefix = hex!("3041 300d 0609 608648016503040202 0500 0430");
         let message = [1u8, 2u8, 3u8];
@@ -127,7 +127,7 @@ fn rsa3072pkcs_sign_verify() {
 
 #[test_log::test]
 fn rsa3072pkcs_inject() {
-    client::get(|client| {
+    virt::with_ram_client(|client| {
         let n  = hex!("c2094ddae7a5de41dbe4b38ad72169027167482983e07b10efb3f549c5d85a1c2d68aba2e2178fc549a51bd18ea2f995bde529f5c6ccfcbef442e8fe6d113fc09a00ccffda8e78e4ecde7aaa30f83fad1d3aa1f923df1ce9fd06f2bb0f73dca779b0645220c5e6da1f4730392af7ea62520c9a80bc49e11c5a53fd6db0be1ba4b6c78fbc6da5d5b86b58b9f512dd580e60cd10a5995c71cabdab4b9afa718bf112da2ed4ab9d419387148116a9cc94b62bafab962f961a3efcd8584b661a1cb5f9b5ddbe2e96f1e7fd1cb3a8ae15d3685eae33c34451d55d8e48a423e910ebde619cba0f6c000c7d85e5d1f9cb03da22764fa67b426f11ba5965491c9ab2697ac050ea1bb6b011a441e707bb2c3380502dc617e3ec3b226350a49c66fa2a6a6e2818fccc9e6c46097d7f658b47665f958a7870fd0ec595b9fe73156d977936b3c952ee24cb71574c68f995260cf59cb1cc5548d512a471708a6aedd32704b8a40ab7fed7de64dca930678e9dae0e02076ab5ff1993547e68b1dfd8e9adf9d9b7");
         let e = hex!("010001");
         let d = hex!("46af20ff779782e9b6f30f3caab5ef0d06c6bb10f48b98094968e31826cc73b7040bb74ab4d6247798265f85ed520d5db1398419967c222e65c8e21b9d1bc57fa21a5c936fc8aaddaa3439b739f3952eb9111ce4275f25a74f9772611675fc91bdd0b61afcf95ae966af862fad2976e6ae410d1f8c77d55b80c44bf3e388bd85395865521d17664db23d3630c2d8833569aa0a406927b6044727d978f176dfa5c85a56e8fe43611a1f01272d5c59bc6ac86b4c347fcd4c6e59a96e30b95715d1c920454006d5dfbf1b1f4c0305dc8a862e131185478b813dfdba873b926f70714c38023698d4b0e933f36c37e32a9dd98d852bf3395dbebb27e2c2ddb378ef56d32614def94e2a44ba3f3ae2d199d1cd57928dec1a3ac1a7ebfd8603ee0948ebc1372e91a8f0ef5e61e069c13d07ba5dc9d6fac172f316812a730b9f80a6ada8508a36c3278ba713809fbfe336369e60983e848ca10607eca3dafa2ecb1cd8d1bfde49830d489f32135e95cb396b589a37fbf81cd4752a2ffd621d70e8a3d0b1");
