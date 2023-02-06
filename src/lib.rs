@@ -1,7 +1,8 @@
-#![no_std]
+// #![no_std]
 
 use heapless_bytes::Bytes;
 use num_bigint_dig::traits::ModInverse;
+use num_bigint_dig::BigUint;
 use rsa::sha2::{Sha256, Sha384, Sha512};
 use rsa::{
     pkcs1v15::SigningKey,
@@ -14,7 +15,7 @@ use trussed::{
     backend::Backend,
     key,
     platform::Platform,
-    postcard_serialize_bytes,
+    postcard_deserialize, postcard_serialize_bytes,
     service::{Keystore, ServiceResources},
     types::{CoreContext, KeySerialization, Mechanism, Signature, SignatureSerialization},
     Error,
@@ -75,20 +76,12 @@ fn derive_key(
     Ok(reply::DeriveKey { key: pub_key_id })
 }
 
-fn deserialize_key(
+fn deserialize_pkcs_key(
     keystore: &mut impl Keystore,
     request: &request::DeserializeKey,
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::DeserializeKey, Error> {
-    // - mechanism: Mechanism
-    // - serialized_key: Message
-    // - attributes: StorageAttributes
-
-    if request.format != KeySerialization::Pkcs8Der {
-        return Err(Error::InternalError);
-    }
-
     let pub_key: RsaPublicKey = DecodePublicKey::from_public_key_der(&request.serialized_key)
         .map_err(|_| Error::InvalidSerializedKey)?;
 
@@ -110,6 +103,57 @@ fn deserialize_key(
 
     Ok(reply::DeserializeKey { key: pub_key_id })
 }
+
+fn deserialize_parts_key(
+    keystore: &mut impl Keystore,
+    request: &request::DeserializeKey,
+    bits: usize,
+    kind: key::Kind,
+) -> Result<reply::DeserializeKey, Error> {
+    let parsed: RsaPublicParts = postcard_deserialize(&request.serialized_key).map_err(|_err| {
+        error!("Failed to deserialize key parts");
+        dbg!(Error::InvalidSerializedKey)
+    })?;
+    let n = BigUint::from_bytes_be(parsed.n);
+    let e = BigUint::from_bytes_be(parsed.e);
+    let pub_key = RsaPublicKey::new_unchecked(n, e);
+
+    if pub_key.size() != bits / 8 {
+        return Err(Error::WrongKeyKind);
+    }
+
+    // We store our keys in PKCS#8 DER format
+    let pub_key_der = pub_key
+        .to_public_key_der()
+        .expect("Failed to serialize an RSA public key to PKCS#8 DER");
+
+    let pub_key_id = keystore.store_key(
+        request.attributes.persistence,
+        key::Secrecy::Public,
+        kind,
+        pub_key_der.as_ref(),
+    )?;
+
+    Ok(reply::DeserializeKey { key: pub_key_id })
+}
+
+fn deserialize_key(
+    keystore: &mut impl Keystore,
+    request: &request::DeserializeKey,
+    bits: usize,
+    kind: key::Kind,
+) -> Result<reply::DeserializeKey, Error> {
+    // - mechanism: Mechanism
+    // - serialized_key: Message
+    // - attributes: StorageAttributes
+
+    match request.format {
+        KeySerialization::Pkcs8Der => deserialize_pkcs_key(keystore, request, bits, kind),
+        KeySerialization::RsaParts => deserialize_parts_key(keystore, request, bits, kind),
+        _ => return Err(Error::InvalidSerializationFormat),
+    }
+}
+
 fn serialize_key(
     keystore: &mut impl Keystore,
     request: &request::SerializeKey,
@@ -280,7 +324,6 @@ fn unsafe_inject_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::UnsafeInjectKey, Error> {
-    use rsa::BigUint;
     let data: RsaImportFormat<'_> =
         trussed::postcard_deserialize(&request.raw_key).map_err(|_err| {
             error!("Failed to deserialize RSA key: {_err:?}");
