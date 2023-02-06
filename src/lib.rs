@@ -27,8 +27,8 @@ pub struct SoftwareRsa;
 
 #[derive(Serialize, Deserialize)]
 pub struct RsaPublicParts<'d> {
-    n: &'d [u8],
-    e: &'d [u8],
+    pub n: &'d [u8],
+    pub e: &'d [u8],
 }
 
 fn bits_and_kind_from_mechanism(mechanism: Mechanism) -> Result<(usize, key::Kind), Error> {
