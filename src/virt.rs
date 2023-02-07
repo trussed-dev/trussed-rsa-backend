@@ -26,32 +26,32 @@ use trussed::{
     Platform,
 };
 
-pub fn with_client<S, R, F>(store: S, f: F) -> R
+pub fn with_client<S, R, F>(store: S, client_id: &str, f: F) -> R
 where
-    F: FnOnce(&mut Client<S, Dispatcher>) -> R,
+    F: FnOnce(Client<S, Dispatcher>) -> R,
     S: StoreProvider,
 {
     virt::with_platform(store, |platform| {
         platform.run_client_with_backends(
-            "rsa tests",
+            client_id,
             Dispatcher,
             &[BackendId::Custom(BackendIds::SoftwareRsa), BackendId::Core],
-            |mut client| f(&mut client),
+            |client| f(client),
         )
     })
 }
 
-pub fn with_fs_client<P, R, F>(internal: P, f: F) -> R
+pub fn with_fs_client<P, R, F>(internal: P, client_id: &str, f: F) -> R
 where
-    F: FnOnce(&mut Client<Filesystem, Dispatcher>) -> R,
+    F: FnOnce(Client<Filesystem, Dispatcher>) -> R,
     P: Into<PathBuf>,
 {
-    with_client(Filesystem::new(internal), f)
+    with_client(Filesystem::new(internal), client_id, f)
 }
 
-pub fn with_ram_client<R, F>(f: F) -> R
+pub fn with_ram_client<R, F>(client_id: &str, f: F) -> R
 where
-    F: FnOnce(&mut Client<Ram, Dispatcher>) -> R,
+    F: FnOnce(Client<Ram, Dispatcher>) -> R,
 {
-    with_client(Ram::default(), f)
+    with_client(Ram::default(), client_id, f)
 }
