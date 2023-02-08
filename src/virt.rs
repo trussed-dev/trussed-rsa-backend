@@ -22,11 +22,11 @@ impl<P: Platform> Dispatch<P> for Dispatcher {
 use std::path::PathBuf;
 use trussed::{
     backend::{Backend, BackendId, Dispatch},
-    virt::{self, Client as VirtClient, Filesystem, Ram, StoreProvider},
+    virt::{self, Filesystem, Ram, StoreProvider},
     Platform,
 };
 
-pub type Client<S> = VirtClient<S, Dispatcher>;
+pub type Client<S, D = Dispatcher> = virt::Client<S, D>;
 
 pub fn with_client<S, R, F>(store: S, client_id: &str, f: F) -> R
 where
@@ -38,7 +38,7 @@ where
             client_id,
             Dispatcher,
             &[BackendId::Custom(BackendIds::SoftwareRsa), BackendId::Core],
-            |client| f(client),
+            f,
         )
     })
 }
