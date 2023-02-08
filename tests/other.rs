@@ -7,7 +7,7 @@ use trussed_rsa_backend::virt;
 
 #[test]
 fn certificate_client() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let fake_der = &[1u8, 2, 3];
         let id = syscall!(client.write_certificate(Volatile, fake_der)).id;
 

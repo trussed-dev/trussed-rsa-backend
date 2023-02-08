@@ -50,7 +50,7 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
     ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# virt::with_ram_client(|client| {
+    ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
@@ -169,7 +169,7 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
     ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# virt::with_ram_client(|client| {
+    ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
@@ -288,7 +288,7 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
     ///# {
     ///# use trussed_rsa_backend::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
-    ///# virt::with_ram_client(|client| {
+    ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
     /// let serialized_key = syscall!(client.serialize_rsa4096_key(pk)).serialized_key;

@@ -22,7 +22,7 @@ use rsa::{PublicKey, RsaPrivateKey};
 
 #[test_log::test]
 fn rsa2048pkcs_generate_key() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
 
         // This assumes we don't ever get a key with ID 0
@@ -32,7 +32,7 @@ fn rsa2048pkcs_generate_key() {
 
 #[test_log::test]
 fn rsa2048pkcs_derive_key() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
 
@@ -43,7 +43,7 @@ fn rsa2048pkcs_derive_key() {
 
 #[test_log::test]
 fn rsa2048pkcs_exists_key() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let key_exists =
             syscall!(client.exists(trussed::types::Mechanism::Rsa2048Pkcs1v15, sk)).exists;
@@ -54,7 +54,7 @@ fn rsa2048pkcs_exists_key() {
 
 #[test_log::test]
 fn rsa2048pkcs_serialize_key() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
 
@@ -66,7 +66,7 @@ fn rsa2048pkcs_serialize_key() {
 
 #[test_log::test]
 fn rsa2048_deserialize_key() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
         let serialized_key = syscall!(client.serialize_rsa2048_key(pk)).serialized_key;
@@ -83,7 +83,7 @@ fn rsa2048_deserialize_key() {
 
 #[test_log::test]
 fn rsa2048pkcs_encrypt_decrypt() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Volatile)).key;
         let message = [1u8, 2u8, 3u8];
         let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
@@ -108,7 +108,7 @@ fn rsa2048pkcs_encrypt_decrypt() {
 
 #[test_log::test]
 fn rsa2048pkcs_sign_verify() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa2048pkcs_private_key(Volatile)).key;
         let hash_prefix = hex!("3031 300d 0609 608648016503040201 0500 0420");
         let message = [1u8, 2u8, 3u8];
@@ -126,7 +126,7 @@ fn rsa2048pkcs_sign_verify() {
 }
 #[test_log::test]
 fn rsa2048pkcs_inject() {
-    virt::with_ram_client(|client| {
+    virt::with_ram_client("rsa test", |mut client| {
         let n = hex!("b43f96eee6abf0e71d81244f9adcc049c379f22a40d99e0a921fca08c1a83695f2060eeebc52823e8fa59f61156e42119758c3937c848a69e13a4a3ee23f35bb923a63b7d0cec6092957ff038b58c63339f300fb0d6dfc3d239fb8ef2caafbb40ca98fbd795e6ab5128a6e880b72a0637bfb197ea6697cd045c648d2a55f0f0e181d6bb50e56f297c8da164a3b04fab69e66107a7767e3a2c1df5e655c40db3e76e469e6db71b2d4edd73d48eee894d3c6c8e966bc2153256b014bc63a8f02c59a06b89004903ec4887ac916e2f7c5077b93eef17e914bb07add9dced384946f89d99ba48b28eedcc511ce359d2b2bce8052181f229033b6f2b1a905a55b33bd");
         let e = hex!("010001");
         let d = hex!("0ac47db4b9ccedb030c00536482f05c1a24ec79ba4921b71d036dbefd7f9bf81079b3b0b21eedfdef2dfd6fc8ab63276308f59e79699a85718e04d8d2220da89e0fb61f79a1eb00fde0b66ad848682188f4ea7f15765099b71645a3cd773436407199dff989f7e4a60d82a303056e1a3efc51949ca9124a6a0746ee73e7fc63b5c9df7e15be95b3f83dbb81a3a95284b52ca584fd058e9dbe74285b85b13688225c72cfc4c636950553aa31670de8dac45abac75e8872ee623f6cb0974c1915600bfc8e5c60e38101ae558ab3400d540b1db36b5eb6d9a0674ddbb814b69258ef15a0a3d07d557856a30af72d5c8ebc26d8cb067be783a5aea564afba4e28181");
