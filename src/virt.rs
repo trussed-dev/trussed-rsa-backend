@@ -1,4 +1,5 @@
-/// Wrapper around [`trussed::virt`][] that provides clients with both the core backend and the [`SoftwareRsa`](crate::SoftwareRsa) backend.
+//! Wrapper around [`trussed::virt`][] that provides clients with both the core backend and the [`SoftwareRsa`](crate::SoftwareRsa) backend.
+
 use crate::SoftwareRsa;
 
 pub struct Dispatcher;
