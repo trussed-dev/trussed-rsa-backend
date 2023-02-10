@@ -6,10 +6,10 @@ pub struct Dispatcher;
 pub enum BackendIds {
     SoftwareRsa,
 }
-impl<P: Platform> Dispatch<P> for Dispatcher {
+impl Dispatch for Dispatcher {
     type BackendId = BackendIds;
     type Context = ();
-    fn request(
+    fn request<P: Platform>(
         &mut self,
         _backend: &Self::BackendId,
         ctx: &mut trussed::types::Context<Self::Context>,

@@ -389,9 +389,9 @@ fn exists(
     Ok(reply::Exists { exists })
 }
 
-impl<P: Platform> Backend<P> for SoftwareRsa {
+impl Backend for SoftwareRsa {
     type Context = ();
-    fn request(
+    fn request<P: Platform>(
         &mut self,
         core_ctx: &mut CoreContext,
         _backend_ctx: &mut Self::Context,
