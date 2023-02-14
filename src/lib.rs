@@ -3,6 +3,7 @@
 use heapless_bytes::Bytes;
 use num_bigint_dig::traits::ModInverse;
 use num_bigint_dig::BigUint;
+use rsa::rand_core::{CryptoRng, RngCore};
 use rsa::sha2::{Sha256, Sha384, Sha512};
 use rsa::{
     pkcs1v15::SigningKey,
@@ -41,12 +42,16 @@ pub use crypto_traits::{Rsa2048Pkcs1v15, Rsa3072Pkcs1v15, Rsa4096Pkcs1v15};
 /// This implementation is done in software and requieres an allocator
 pub struct SoftwareRsa;
 
-fn bits_and_kind_from_mechanism(mechanism: Mechanism) -> Result<(usize, key::Kind), Error> {
+/// The bool returned points at wether the mechanism is raw RSA
+fn bits_and_kind_from_mechanism(mechanism: Mechanism) -> Result<(usize, key::Kind, bool), Error> {
     use Mechanism::*;
     match mechanism {
-        Rsa2048Pkcs1v15 => Ok((2048, key::Kind::Rsa2048)),
-        Rsa3072Pkcs1v15 => Ok((3072, key::Kind::Rsa3072)),
-        Rsa4096Pkcs1v15 => Ok((4096, key::Kind::Rsa4096)),
+        Rsa2048Pkcs1v15 => Ok((2048, key::Kind::Rsa2048, false)),
+        Rsa3072Pkcs1v15 => Ok((3072, key::Kind::Rsa3072, false)),
+        Rsa4096Pkcs1v15 => Ok((4096, key::Kind::Rsa4096, false)),
+        Rsa2048Raw => Ok((2048, key::Kind::Rsa2048, true)),
+        Rsa3072Raw => Ok((3072, key::Kind::Rsa3072, true)),
+        Rsa4096Raw => Ok((4096, key::Kind::Rsa4096, true)),
         _ => Err(Error::RequestNotAvailable),
     }
 }
@@ -321,6 +326,51 @@ fn decrypt(
         })?),
     })
 }
+
+#[cfg(feature = "raw")]
+fn decrypt_raw<R: RngCore + CryptoRng>(
+    keystore: &mut impl Keystore,
+    request: &request::Decrypt,
+    kind: key::Kind,
+    rng: &mut R,
+) -> Result<reply::Decrypt, Error> {
+    // First, get the key
+    let key_id = request.key;
+
+    // We rely on the fact that we store the keys in the PKCS#8 DER format already
+    let priv_key_der = keystore
+        .load_key(key::Secrecy::Secret, Some(kind), &key_id)
+        .expect("Failed to load an RSA private key with the given ID")
+        .material;
+
+    let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
+        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+
+    let c = rsa::BigUint::from_bytes_be(&request.message);
+    let res = rsa::internals::decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
+        error!("Failed raw decryption: {:?}", _err);
+        Error::InternalError
+    })?;
+
+    Ok(reply::Decrypt {
+        plaintext: Some(Bytes::from_slice(&res.to_bytes_be()).map_err(|_| {
+            error!("Failed type conversion");
+            Error::InternalError
+        })?),
+    })
+}
+
+#[cfg(not(feature = "raw"))]
+fn decrypt_raw(
+    _keystore: &mut impl Keystore,
+    _request: &request::Decrypt,
+    _kind: key::Kind,
+    _rng: &mut impl CryptoRng,
+) -> Result<reply::Decrypt, Error> {
+    warn!("Raw RSA is not enabled. Please enable the `raw` feature");
+    Err(Error::FunctionNotSupported)
+}
+
 fn unsafe_inject_key(
     keystore: &mut impl Keystore,
     request: &request::UnsafeInjectKey,
@@ -398,42 +448,55 @@ impl Backend for SoftwareRsa {
         request: &Request,
         resources: &mut ServiceResources<P>,
     ) -> Result<Reply, Error> {
+        let mut rng = resources.rng()?;
         let mut keystore = resources.keystore(core_ctx)?;
         match request {
             Request::DeriveKey(req) => {
-                let (_bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (_bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 derive_key(&mut keystore, req, kind).map(Reply::DeriveKey)
             }
             Request::DeserializeKey(req) => {
-                let (bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 deserialize_key(&mut keystore, req, bits, kind).map(Reply::DeserializeKey)
             }
             Request::SerializeKey(req) => {
-                let (_bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (_bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 serialize_key(&mut keystore, req, kind).map(Reply::SerializeKey)
             }
             Request::GenerateKey(req) => {
-                let (bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 generate_key(&mut keystore, req, bits, kind).map(Reply::GenerateKey)
             }
             Request::Sign(req) => {
-                let (_bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
+                if raw {
+                    warn!("Attempt at raw sign");
+                    return Err(Error::MechanismInvalid);
+                }
                 sign(&mut keystore, req, kind).map(Reply::Sign)
             }
             Request::Verify(req) => {
-                let (bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
+                if raw {
+                    warn!("Attempt at raw verify");
+                    return Err(Error::MechanismInvalid);
+                }
                 verify(&mut keystore, req, bits, kind).map(Reply::Verify)
             }
             Request::Decrypt(req) => {
-                let (_bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
-                decrypt(&mut keystore, req, kind).map(Reply::Decrypt)
+                let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
+                if raw {
+                    decrypt_raw(&mut keystore, req, kind, &mut rng).map(Reply::Decrypt)
+                } else {
+                    decrypt(&mut keystore, req, kind).map(Reply::Decrypt)
+                }
             }
             Request::UnsafeInjectKey(req) => {
-                let (bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 unsafe_inject_key(&mut keystore, req, bits, kind).map(Reply::UnsafeInjectKey)
             }
             Request::Exists(req) => {
-                let (_bits, kind) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (_bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
                 exists(&mut keystore, req, kind).map(Reply::Exists)
             }
             _ => Err(Error::RequestNotAvailable),

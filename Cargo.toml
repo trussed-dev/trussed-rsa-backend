@@ -15,7 +15,7 @@ num-bigint-dig = { version = "0.8.2", default-features = false }
 rsa = { version = "0.8.1", default-features = false, features = ["sha2"]}
 serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "51477a4c5d22b7fbfe9d5fed137701764b2c86ec" }
+trussed = "0.1"
 
 [dev-dependencies]
 hex-literal = "0.3.4"
@@ -27,9 +27,12 @@ rand = "0.8.5"
 
 [features]
 
-default = []
+default = ["raw"]
 virt = ["std","trussed/virt"]
 std = []
+
+# Add support for raw RSA keys
+raw = ["rsa/expose-internals"]
 
 log-all = []
 log-none = []
@@ -37,6 +40,9 @@ log-info = []
 log-debug = []
 log-warn = []
 log-error = []
+
+[patch.crates-io]
+ trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "67b4ee9c6c530658e2a358a082cbf8720e896bc1" }
 
 [profile.dev.package.rsa]
 opt-level = 2
