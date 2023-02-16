@@ -1,3 +1,6 @@
+// Copyright (C) Nitrokey GmbH
+// SPDX-License-Identifier: Apache-2.0 or MIT
+
 #![cfg(feature = "virt")]
 
 use rsa::sha2::Sha384;
@@ -12,7 +15,7 @@ use trussed::types::Mechanism;
 use trussed::types::StorageAttributes;
 use trussed::Bytes;
 
-use trussed_rsa_backend::*;
+use trussed_rsa_alloc::*;
 
 use hex_literal::hex;
 use num_bigint_dig::BigUint;

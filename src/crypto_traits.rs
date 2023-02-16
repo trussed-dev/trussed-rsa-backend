@@ -1,3 +1,6 @@
+// Copyright (C) Nitrokey GmbH
+// SPDX-License-Identifier: Apache-2.0 or MIT
+
 use trussed::{
     api::{
         reply,
@@ -48,7 +51,7 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
-    ///# use trussed_rsa_backend::*;
+    ///# use trussed_rsa_alloc::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
@@ -167,7 +170,7 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
-    ///# use trussed_rsa_backend::*;
+    ///# use trussed_rsa_alloc::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
@@ -286,7 +289,7 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
-    ///# use trussed_rsa_backend::*;
+    ///# use trussed_rsa_alloc::*;
     ///# use trussed::{postcard_deserialize,syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;

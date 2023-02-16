@@ -1,10 +1,13 @@
+# Copyright (C) Nitrokey GmbH
+# SPDX-License-Identifier: CC0-1.0
+
 [package]
-name = "trussed-rsa-backend"
+name = "trussed-rsa-alloc"
 version = "0.1.0"
 edition = "2021"
 description = "Trussed backend adding support for the RSA algorithm using an allocator"
 authors = ["Nitrokey GmbH <info@nitrokey.com>"]
-license = "LGPL-3.0-only"
+license = "Apache-2.0 OR MIT"
 rust-version = "1.66"
 keywords = ["trussed", "rsa", "no-std"]
 
@@ -27,7 +30,6 @@ rand = "0.8.5"
 
 [features]
 
-default = ["raw"]
 virt = ["std","trussed/virt"]
 std = []
 

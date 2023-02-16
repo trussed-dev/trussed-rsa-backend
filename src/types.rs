@@ -1,3 +1,6 @@
+// Copyright (C) Nitrokey GmbH
+// SPDX-License-Identifier: Apache-2.0 or MIT
+
 use serde::{Deserialize, Serialize};
 
 /// Structure containing the public part of an RSA key
