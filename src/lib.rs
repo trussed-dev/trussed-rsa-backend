@@ -21,7 +21,9 @@ use trussed::{
     platform::Platform,
     postcard_deserialize, postcard_serialize_bytes,
     service::{Keystore, ServiceResources},
-    types::{CoreContext, KeySerialization, Mechanism, Signature, SignatureSerialization},
+    types::{
+        CoreContext, KeyId, KeySerialization, Mechanism, Message, Signature, SignatureSerialization,
+    },
     Error,
 };
 
@@ -331,14 +333,14 @@ fn decrypt(
 }
 
 #[cfg(feature = "raw")]
-fn decrypt_raw<R: RngCore + CryptoRng>(
+fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
     keystore: &mut impl Keystore,
-    request: &request::Decrypt,
+    key_id: KeyId,
+    plaintext: &Message,
     kind: key::Kind,
     rng: &mut R,
-) -> Result<reply::Decrypt, Error> {
+) -> Result<Bytes<N>, Error> {
     // First, get the key
-    let key_id = request.key;
 
     // We rely on the fact that we store the keys in the PKCS#8 DER format already
     let priv_key_der = keystore
@@ -349,27 +351,26 @@ fn decrypt_raw<R: RngCore + CryptoRng>(
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
         .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
 
-    let c = rsa::BigUint::from_bytes_be(&request.message);
+    let c = rsa::BigUint::from_bytes_be(plaintext);
     let res = rsa::internals::decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
         error!("Failed raw decryption: {:?}", _err);
         Error::InternalError
     })?;
 
-    Ok(reply::Decrypt {
-        plaintext: Some(Bytes::from_slice(&res.to_bytes_be()).map_err(|_| {
-            error!("Failed type conversion");
-            Error::InternalError
-        })?),
+    Bytes::from_slice(&res.to_bytes_be()).map_err(|_| {
+        error!("Failed type conversion");
+        Error::InternalError
     })
 }
 
 #[cfg(not(feature = "raw"))]
-fn decrypt_raw(
+fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
     _keystore: &mut impl Keystore,
-    _request: &request::Decrypt,
+    _key: KeyId,
+    _plaintext: &Message,
     _kind: key::Kind,
-    _rng: &mut impl CryptoRng,
-) -> Result<reply::Decrypt, Error> {
+    _rng: &mut R,
+) -> Result<Bytes<N>, Error> {
     warn!("Raw RSA is not enabled. Please enable the `raw` feature");
     Err(Error::FunctionNotSupported)
 }
@@ -473,10 +474,11 @@ impl Backend for SoftwareRsa {
             Request::Sign(req) => {
                 let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    warn!("Attempt at raw sign");
-                    return Err(Error::MechanismInvalid);
+                    rsa_raw(&mut keystore, req.key, &req.message, kind, &mut rng)
+                        .map(|d| Reply::Sign(reply::Sign { signature: d }))
+                } else {
+                    sign(&mut keystore, req, kind).map(Reply::Sign)
                 }
-                sign(&mut keystore, req, kind).map(Reply::Sign)
             }
             Request::Verify(req) => {
                 let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
@@ -489,7 +491,8 @@ impl Backend for SoftwareRsa {
             Request::Decrypt(req) => {
                 let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    decrypt_raw(&mut keystore, req, kind, &mut rng).map(Reply::Decrypt)
+                    rsa_raw(&mut keystore, req.key, &req.message, kind, &mut rng)
+                        .map(|r| Reply::Decrypt(reply::Decrypt { plaintext: Some(r) }))
                 } else {
                     decrypt(&mut keystore, req, kind).map(Reply::Decrypt)
                 }
