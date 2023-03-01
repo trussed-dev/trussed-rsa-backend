@@ -15,6 +15,7 @@ keywords = ["trussed", "rsa", "no-std"]
 delog = "0.1.6"
 heapless-bytes = "0.3.0"
 num-bigint-dig = { version = "0.8.2", default-features = false }
+postcard = { version = "0.7", default-features = false, features = ["heapless"] }
 rsa = { version = "0.8.1", default-features = false, features = ["sha2"]}
 serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 
@@ -30,7 +31,7 @@ rand = "0.8.5"
 
 [features]
 
-virt = ["std","trussed/virt"]
+virt = ["std", "trussed/virt"]
 std = []
 
 # Add support for raw RSA keys

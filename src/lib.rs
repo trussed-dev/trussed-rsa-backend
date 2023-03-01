@@ -19,7 +19,6 @@ use trussed::{
     backend::Backend,
     key,
     platform::Platform,
-    postcard_deserialize, postcard_serialize_bytes,
     service::{Keystore, ServiceResources},
     types::{
         CoreContext, KeyId, KeySerialization, Mechanism, Message, Signature, SignatureSerialization,
@@ -124,7 +123,7 @@ fn deserialize_parts_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::DeserializeKey, Error> {
-    let parsed: RsaPublicParts = postcard_deserialize(&request.serialized_key).map_err(|_err| {
+    let parsed = RsaPublicParts::deserialize(&request.serialized_key).map_err(|_err| {
         error!("Failed to deserialize key parts");
         Error::InvalidSerializedKey
     })?;
@@ -187,7 +186,7 @@ fn serialize_key(
                 DecodePublicKey::from_public_key_der(&pub_key_der).expect("Failed to parse key");
             let e = &key.e().to_bytes_be();
             let n = &key.n().to_bytes_be();
-            postcard_serialize_bytes(&RsaPublicParts { e, n }).map_err(|_err| {
+            RsaPublicParts { e, n }.serialize().map_err(|_err| {
                 error!("Failed to serialize public key {_err:?}");
                 Error::InternalError
             })?

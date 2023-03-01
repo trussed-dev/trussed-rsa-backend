@@ -6,14 +6,12 @@
 use rsa::sha2::Sha384;
 use rsa::{Pkcs1v15Encrypt, Pkcs1v15Sign, PublicKeyParts};
 use trussed::client::CryptoClient;
-use trussed::postcard_deserialize;
 use trussed::syscall;
 use trussed::types::KeyId;
 use trussed::types::KeySerialization;
 use trussed::types::Location::*;
 use trussed::types::Mechanism;
 use trussed::types::StorageAttributes;
-use trussed::Bytes;
 
 use trussed_rsa_alloc::*;
 
@@ -73,7 +71,7 @@ fn rsa3072_deserialize_key() {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
         let serialized_key = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
-        let public_key = postcard_deserialize(&serialized_key).unwrap();
+        let public_key = RsaPublicParts::deserialize(&serialized_key).unwrap();
         let location = StorageAttributes::new().set_persistence(Volatile);
 
         let deserialized_key_id =
@@ -91,7 +89,7 @@ fn rsa3072pkcs_encrypt_decrypt() {
         let message = [1u8, 2u8, 3u8];
         let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
         let rs_pks_buffer = syscall!(client.serialize_rsa3072_key(pk)).serialized_key;
-        let parsed: RsaPublicParts = postcard_deserialize(&rs_pks_buffer).unwrap();
+        let parsed = RsaPublicParts::deserialize(&rs_pks_buffer).unwrap();
         let pubkey = rsa::RsaPublicKey::new_unchecked(
             BigUint::from_bytes_be(parsed.n),
             BigUint::from_bytes_be(parsed.e),
@@ -152,7 +150,7 @@ fn rsa3072pkcs_inject() {
             p: &p1,
             q: &p2,
         };
-        let data: Bytes<3072> = trussed::postcard_serialize_bytes(&request).unwrap();
+        let data = request.serialize().unwrap();
         let sk = syscall!(client.unsafe_inject_key(
             Mechanism::Rsa3072Pkcs1v15,
             &data,
