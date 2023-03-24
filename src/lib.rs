@@ -380,11 +380,10 @@ fn unsafe_inject_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::UnsafeInjectKey, Error> {
-    let data: RsaImportFormat<'_> =
-        trussed::postcard_deserialize(&request.raw_key).map_err(|_err| {
-            error!("Failed to deserialize RSA key: {_err:?}");
-            Error::InvalidSerializedKey
-        })?;
+    let data = RsaImportFormat::deserialize(&request.raw_key).map_err(|_err| {
+        error!("Failed to deserialize RSA key: {_err:?}");
+        Error::InvalidSerializedKey
+    })?;
     let e = BigUint::from_bytes_be(data.e);
     let p = BigUint::from_bytes_be(data.p);
     let q = BigUint::from_bytes_be(data.q);
