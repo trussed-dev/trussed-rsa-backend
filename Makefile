@@ -1,6 +1,6 @@
 # Copyright (C) Nitrokey GmbH
 # SPDX-License-Identifier: CC0-1.0
-
+export RUST_LOG ?= info,cargo_tarpaulin=off
 .PHONY: check
 check:
 	RUSTLFAGS='-Dwarnings' cargo check --all-features --all-targets
@@ -15,6 +15,10 @@ lint:
 .PHONY: test
 test:
 	cargo test --all-features
+
+.PHONY: tarpaulin
+tarpaulin:
+	cargo tarpaulin --all-features -o Html -o Xml
 
 .PHONY: ci
 ci: check lint test
