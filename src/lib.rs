@@ -49,14 +49,13 @@ pub struct SoftwareRsa;
 
 /// The bool returned points at wether the mechanism is raw RSA
 fn bits_and_kind_from_mechanism(mechanism: Mechanism) -> Result<(usize, key::Kind, bool), Error> {
-    use Mechanism::*;
     match mechanism {
-        Rsa2048Pkcs1v15 => Ok((2048, key::Kind::Rsa2048, false)),
-        Rsa3072Pkcs1v15 => Ok((3072, key::Kind::Rsa3072, false)),
-        Rsa4096Pkcs1v15 => Ok((4096, key::Kind::Rsa4096, false)),
-        Rsa2048Raw => Ok((2048, key::Kind::Rsa2048, true)),
-        Rsa3072Raw => Ok((3072, key::Kind::Rsa3072, true)),
-        Rsa4096Raw => Ok((4096, key::Kind::Rsa4096, true)),
+        Mechanism::Rsa2048Pkcs1v15 => Ok((2048, key::Kind::Rsa2048, false)),
+        Mechanism::Rsa3072Pkcs1v15 => Ok((3072, key::Kind::Rsa3072, false)),
+        Mechanism::Rsa4096Pkcs1v15 => Ok((4096, key::Kind::Rsa4096, false)),
+        Mechanism::Rsa2048Raw => Ok((2048, key::Kind::Rsa2048, true)),
+        Mechanism::Rsa3072Raw => Ok((3072, key::Kind::Rsa3072, true)),
+        Mechanism::Rsa4096Raw => Ok((4096, key::Kind::Rsa4096, true)),
         _ => Err(Error::RequestNotAvailable),
     }
 }
