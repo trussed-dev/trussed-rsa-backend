@@ -228,10 +228,8 @@ fn sign(
     request: &request::Sign,
     kind: key::Kind,
 ) -> Result<reply::Sign, Error> {
-    // First, get the key
     let key_id = request.key;
 
-    // We rely on the fact that we store the keys in the PKCS#8 DER format already
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
         .expect("Failed to load an RSA private key with the given ID")
@@ -255,7 +253,6 @@ fn sign(
     })?;
     let our_signature = Signature::from_slice(native_signature.as_ref()).unwrap();
 
-    // return signature
     Ok(reply::Sign {
         signature: our_signature,
     })
@@ -304,15 +301,12 @@ fn decrypt(
     kind: key::Kind,
 ) -> Result<reply::Decrypt, Error> {
     use rsa::Pkcs1v15Encrypt;
-    // First, get the key
     let key_id = request.key;
 
-    // We rely on the fact that we store the keys in the PKCS#8 DER format already
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
         .expect("Failed to load an RSA private key with the given ID")
         .material;
-
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
         .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
 
@@ -339,14 +333,10 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
     kind: key::Kind,
     rng: &mut R,
 ) -> Result<Bytes<N>, Error> {
-    // First, get the key
-
-    // We rely on the fact that we store the keys in the PKCS#8 DER format already
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
         .expect("Failed to load an RSA private key with the given ID")
         .material;
-
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
         .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
 
@@ -398,7 +388,6 @@ fn unsafe_inject_key(
             Error::InvalidSerializedKey
         })?;
 
-    // todo check bit size
     let private_key =
         RsaPrivateKey::from_components(&p * &q, e, d, vec![p, q]).map_err(|_err| {
             warn!("Bad private key: {_err:?}");
@@ -413,7 +402,6 @@ fn unsafe_inject_key(
         return Err(Error::InvalidSerializedKey);
     }
 
-    // We store our keys in PKCS#8 DER format
     let private_key_der = private_key
         .to_pkcs8_der()
         .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER");
