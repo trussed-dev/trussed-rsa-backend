@@ -370,7 +370,6 @@ fn unsafe_inject_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::UnsafeInjectKey, Error> {
-
     let private_key_der = match request.format {
         KeySerialization::RsaParts => {
             let data = RsaImportFormat::deserialize(&request.raw_key).map_err(|_err| {
@@ -405,13 +404,18 @@ fn unsafe_inject_key(
                 return Err(Error::InvalidSerializedKey);
             }
 
-            let private_key_der = private_key
+            private_key
                 .to_pkcs8_der()
-                .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER");
-            private_key_der
+                .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER")
         }
-        KeySerialization::Pkcs8Der => {request.raw_key.as_slice().try_into().map_err(|_| Error::InvalidSerializedKey)? }
-        _ => {todo!()}
+        KeySerialization::Pkcs8Der => request
+            .raw_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| Error::InvalidSerializedKey)?,
+        _ => {
+            todo!()
+        }
     };
 
     let private_key_id = keystore.store_key(
