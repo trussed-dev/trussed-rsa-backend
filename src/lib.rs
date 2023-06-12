@@ -370,41 +370,49 @@ fn unsafe_inject_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::UnsafeInjectKey, Error> {
-    let data = RsaImportFormat::deserialize(&request.raw_key).map_err(|_err| {
-        error!("Failed to deserialize RSA key: {_err:?}");
-        Error::InvalidSerializedKey
-    })?;
-    let e = BigUint::from_bytes_be(data.e);
-    let p = BigUint::from_bytes_be(data.p);
-    let q = BigUint::from_bytes_be(data.q);
-    let phi = (&p - 1u64) * (&q - 1u64);
 
-    let d = e
-        .clone()
-        .mod_inverse(&phi)
-        .and_then(|int| int.to_biguint())
-        .ok_or_else(|| {
-            warn!("Failed inverse");
-            Error::InvalidSerializedKey
-        })?;
+    let private_key_der = match request.format {
+        KeySerialization::RsaParts => {
+            let data = RsaImportFormat::deserialize(&request.raw_key).map_err(|_err| {
+                error!("Failed to deserialize RSA key: {_err:?}");
+                Error::InvalidSerializedKey
+            })?;
+            let e = BigUint::from_bytes_be(data.e);
+            let p = BigUint::from_bytes_be(data.p);
+            let q = BigUint::from_bytes_be(data.q);
+            let phi = (&p - 1u64) * (&q - 1u64);
 
-    let private_key =
-        RsaPrivateKey::from_components(&p * &q, e, d, vec![p, q]).map_err(|_err| {
-            warn!("Bad private key: {_err:?}");
-            Error::InvalidSerializedKey
-        })?;
-    private_key.validate().map_err(|_err| {
-        warn!("Bad private key: {_err:?}");
-        Error::InvalidSerializedKey
-    })?;
-    if private_key.size() != bits / 8 {
-        warn!("Bad key size: {}", private_key.size());
-        return Err(Error::InvalidSerializedKey);
-    }
+            let d = e
+                .clone()
+                .mod_inverse(&phi)
+                .and_then(|int| int.to_biguint())
+                .ok_or_else(|| {
+                    warn!("Failed inverse");
+                    Error::InvalidSerializedKey
+                })?;
 
-    let private_key_der = private_key
-        .to_pkcs8_der()
-        .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER");
+            let private_key =
+                RsaPrivateKey::from_components(&p * &q, e, d, vec![p, q]).map_err(|_err| {
+                    warn!("Bad private key: {_err:?}");
+                    Error::InvalidSerializedKey
+                })?;
+            private_key.validate().map_err(|_err| {
+                warn!("Bad private key: {_err:?}");
+                Error::InvalidSerializedKey
+            })?;
+            if private_key.size() != bits / 8 {
+                warn!("Bad key size: {}", private_key.size());
+                return Err(Error::InvalidSerializedKey);
+            }
+
+            let private_key_der = private_key
+                .to_pkcs8_der()
+                .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER");
+            private_key_der
+        }
+        KeySerialization::Pkcs8Der => {request.raw_key.as_slice().try_into().map_err(|_| Error::InvalidSerializedKey)? }
+        _ => {todo!()}
+    };
 
     let private_key_id = keystore.store_key(
         request.attributes.persistence,
