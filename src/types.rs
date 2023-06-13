@@ -67,7 +67,7 @@ impl<'d> RsaPublicParts<'d> {
 /// to convert to and from tha byte array format
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RsaImportFormat<'d> {
-    /// big-endian integer representing the modulus of an RSA key
+    /// big-endian integer representing the exponent of the public part of the RSA key
     pub e: &'d [u8],
     /// big-endian integer representing the first prime of a private RSA key
     pub p: &'d [u8],
