@@ -80,6 +80,30 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
         })
     }
 
+    /// Sign a precomputed hash of the message.
+    ///
+    /// Message should be sent in a PKCS#1's Digestinfo format: `OID || hash`.
+    /// Excerpt from <https://www.rfc-editor.org/rfc/rfc8017#page-47>:
+    /// ```text
+    /// SHA-1:   (0x)30 21 30 09 06 05 2b 0e 03 02 1a 05 00 04 14 || H.
+    /// SHA-224:  (0x)30 2d 30 0d 06 09 60 86 48 01 65 03 04 02 04
+    ///              05 00 04 1c || H.
+    /// SHA-256: (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00
+    ///              04 20 || H.
+    /// SHA-384: (0x)30 41 30 0d 06 09 60 86 48 01 65 03 04 02 02 05 00
+    ///              04 30 || H.
+    /// SHA-512: (0x)30 51 30 0d 06 09 60 86 48 01 65 03 04 02 03 05 00
+    ///              04 40 || H.
+    ///```
+    ///
+    /// The backend will add the required PKCS1v1.5 padding.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: the keyid to be used
+    /// * `message`: a Digestinfo structure: "hash_oid || hash"
+    ///
+    /// returns: Result<FutureResult<Sign, Self>, ClientError>
     fn sign_rsa2048pkcs<'c>(
         &'c mut self,
         key: KeyId,
@@ -199,6 +223,30 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
         })
     }
 
+    /// Sign a precomputed hash of the message.
+    ///
+    /// Message should be sent in a PKCS#1's Digestinfo format: `OID || hash`.
+    /// Excerpt from <https://www.rfc-editor.org/rfc/rfc8017#page-47>:
+    /// ```text
+    /// SHA-1:   (0x)30 21 30 09 06 05 2b 0e 03 02 1a 05 00 04 14 || H.
+    /// SHA-224:  (0x)30 2d 30 0d 06 09 60 86 48 01 65 03 04 02 04
+    ///              05 00 04 1c || H.
+    /// SHA-256: (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00
+    ///              04 20 || H.
+    /// SHA-384: (0x)30 41 30 0d 06 09 60 86 48 01 65 03 04 02 02 05 00
+    ///              04 30 || H.
+    /// SHA-512: (0x)30 51 30 0d 06 09 60 86 48 01 65 03 04 02 03 05 00
+    ///              04 40 || H.
+    ///```
+    ///
+    /// The backend will add the required PKCS1v1.5 padding.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: the keyid to be used
+    /// * `message`: a Digestinfo structure: "hash_oid || hash"
+    ///
+    /// returns: Result<FutureResult<Sign, Self>, ClientError>
     fn sign_rsa3072pkcs<'c>(
         &'c mut self,
         key: KeyId,
@@ -318,6 +366,30 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
         })
     }
 
+    /// Sign a precomputed hash of the message.
+    ///
+    /// Message should be sent in a PKCS#1's Digestinfo format: `OID || hash`.
+    /// Excerpt from <https://www.rfc-editor.org/rfc/rfc8017#page-47>:
+    /// ```text
+    /// SHA-1:   (0x)30 21 30 09 06 05 2b 0e 03 02 1a 05 00 04 14 || H.
+    /// SHA-224:  (0x)30 2d 30 0d 06 09 60 86 48 01 65 03 04 02 04
+    ///              05 00 04 1c || H.
+    /// SHA-256: (0x)30 31 30 0d 06 09 60 86 48 01 65 03 04 02 01 05 00
+    ///              04 20 || H.
+    /// SHA-384: (0x)30 41 30 0d 06 09 60 86 48 01 65 03 04 02 02 05 00
+    ///              04 30 || H.
+    /// SHA-512: (0x)30 51 30 0d 06 09 60 86 48 01 65 03 04 02 03 05 00
+    ///              04 40 || H.
+    ///```
+    ///
+    /// The backend will add the required PKCS1v1.5 padding.
+    ///
+    /// # Arguments
+    ///
+    /// * `key`: the keyid to be used
+    /// * `message`: a Digestinfo structure: "hash_oid || hash"
+    ///
+    /// returns: Result<FutureResult<Sign, Self>, ClientError>
     fn sign_rsa4096pkcs<'c>(
         &'c mut self,
         key: KeyId,
