@@ -439,7 +439,7 @@ impl Backend for SoftwareRsa {
         resources: &mut ServiceResources<P>,
     ) -> Result<Reply, Error> {
         let mut rng = resources.rng()?;
-        let mut keystore = resources.keystore(core_ctx)?;
+        let mut keystore = resources.keystore(core_ctx.path.clone())?;
         match request {
             Request::DeriveKey(req) => {
                 let (_bits, kind, _) = bits_and_kind_from_mechanism(req.mechanism)?;
