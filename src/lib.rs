@@ -41,7 +41,7 @@ pub use types::{RsaImportFormat, RsaPublicParts};
 mod crypto_traits;
 pub use crypto_traits::{Rsa2048Pkcs1v15, Rsa3072Pkcs1v15, Rsa4096Pkcs1v15};
 
-/// Trussed [`Backend`](trussed::backend::Backend) implementation adding support for RSA
+/// Trussed [`Backend`][] implementation adding support for RSA
 ///
 /// This implementation is done in software and requieres an allocator
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default, Hash)]
