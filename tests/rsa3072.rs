@@ -4,7 +4,7 @@
 #![cfg(feature = "virt")]
 
 use rsa::sha2::Sha384;
-use rsa::{Pkcs1v15Encrypt, Pkcs1v15Sign, PublicKeyParts};
+use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, Pkcs1v15Sign};
 use trussed::client::CryptoClient;
 use trussed::syscall;
 use trussed::types::KeyId;
@@ -17,7 +17,7 @@ use trussed_rsa_alloc::*;
 
 use hex_literal::hex;
 use num_bigint_dig::BigUint;
-use rsa::{PublicKey, RsaPrivateKey};
+use rsa::RsaPrivateKey;
 
 // Tests below can be run on a PC using the "virt" feature
 

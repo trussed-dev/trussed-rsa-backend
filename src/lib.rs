@@ -12,7 +12,9 @@ use rsa::{
     pkcs1v15::SigningKey,
     pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey},
     signature::hazmat::PrehashSigner,
-    Pkcs1v15Sign, PublicKey, PublicKeyParts, RsaPrivateKey, RsaPublicKey,
+    signature::SignatureEncoding,
+    traits::PublicKeyParts,
+    Pkcs1v15Sign, RsaPrivateKey, RsaPublicKey,
 };
 use trussed::{
     api::{reply, request, Reply, Request},
@@ -242,16 +244,22 @@ fn sign(
     // We assume we get digest into this function, too.
 
     let native_signature = match kind {
-        key::Kind::Rsa2048 => SigningKey::<Sha256>::new(priv_key).sign_prehash(&request.message),
-        key::Kind::Rsa3072 => SigningKey::<Sha384>::new(priv_key).sign_prehash(&request.message),
-        key::Kind::Rsa4096 => SigningKey::<Sha512>::new(priv_key).sign_prehash(&request.message),
+        key::Kind::Rsa2048 => {
+            SigningKey::<Sha256>::new_unprefixed(priv_key).sign_prehash(&request.message)
+        }
+        key::Kind::Rsa3072 => {
+            SigningKey::<Sha384>::new_unprefixed(priv_key).sign_prehash(&request.message)
+        }
+        key::Kind::Rsa4096 => {
+            SigningKey::<Sha512>::new_unprefixed(priv_key).sign_prehash(&request.message)
+        }
         _ => unreachable!(),
     }
     .map_err(|_err| {
         error!("Failed to sign message: {:?}", _err);
         Error::InternalError
     })?;
-    let our_signature = Signature::from_slice(native_signature.as_ref()).unwrap();
+    let our_signature = Signature::from_slice(&native_signature.to_bytes()).unwrap();
 
     Ok(reply::Sign {
         signature: our_signature,
@@ -284,7 +292,7 @@ fn verify(
 
     let verification_ok = pub_key
         .verify(
-            Pkcs1v15Sign::new_raw(),
+            Pkcs1v15Sign::new_unprefixed(),
             &request.message,
             &request.signature,
         )
@@ -341,7 +349,7 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
         .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
 
     let c = rsa::BigUint::from_bytes_be(plaintext);
-    let res = rsa::internals::decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
+    let res = rsa::hazmat::rsa_decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
         error!("Failed raw decryption: {:?}", _err);
         Error::InternalError
     })?;
