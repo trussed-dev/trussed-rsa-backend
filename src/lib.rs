@@ -192,10 +192,7 @@ fn serialize_key(
                 Error::InternalError
             })?
         }
-        KeySerialization::Pkcs8Der => pub_key_der.try_into().map_err(|_| {
-            error!("Too large key for serialization");
-            Error::InternalError
-        })?,
+        KeySerialization::Pkcs8Der => pub_key_der.into(),
         _ => {
             return Err(Error::InvalidSerializationFormat);
         }
