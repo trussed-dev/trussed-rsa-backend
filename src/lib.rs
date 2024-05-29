@@ -339,6 +339,7 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
     key_id: KeyId,
     plaintext: &Message,
     kind: key::Kind,
+    bits: usize,
     rng: &mut R,
 ) -> Result<Bytes<N>, Error> {
     let priv_key_der = keystore
@@ -354,10 +355,16 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
         Error::InternalError
     })?;
 
-    Bytes::from_slice(&res.to_bytes_be()).map_err(|_| {
-        error!("Failed type conversion");
-        Error::InternalError
-    })
+    fn to_bytes_with_leading_zeros<const N: usize>(data: &[u8], bits: usize) -> Bytes<N> {
+        let expected_len = bits / 8;
+        assert!(data.len() <= expected_len);
+        let mut bytes = Bytes::new();
+        bytes.resize(expected_len - data.len(), 0).unwrap();
+        bytes.extend_from_slice(data).unwrap();
+        bytes
+    }
+
+    Ok(to_bytes_with_leading_zeros(&res.to_bytes_be(), bits))
 }
 
 #[cfg(not(feature = "raw"))]
@@ -366,6 +373,7 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
     _key: KeyId,
     _plaintext: &Message,
     _kind: key::Kind,
+    _bits: usize,
     _rng: &mut R,
 ) -> Result<Bytes<N>, Error> {
     warn!("Raw RSA is not enabled. Please enable the `raw` feature");
@@ -466,9 +474,9 @@ impl Backend for SoftwareRsa {
                 generate_key(&mut keystore, req, bits, kind).map(Reply::GenerateKey)
             }
             Request::Sign(req) => {
-                let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    rsa_raw(&mut keystore, req.key, &req.message, kind, &mut rng)
+                    rsa_raw(&mut keystore, req.key, &req.message, kind, bits, &mut rng)
                         .map(|d| Reply::Sign(reply::Sign { signature: d }))
                 } else {
                     sign(&mut keystore, req, kind).map(Reply::Sign)
@@ -483,9 +491,9 @@ impl Backend for SoftwareRsa {
                 verify(&mut keystore, req, bits, kind).map(Reply::Verify)
             }
             Request::Decrypt(req) => {
-                let (_bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
+                let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    rsa_raw(&mut keystore, req.key, &req.message, kind, &mut rng)
+                    rsa_raw(&mut keystore, req.key, &req.message, kind, bits, &mut rng)
                         .map(|r| Reply::Decrypt(reply::Decrypt { plaintext: Some(r) }))
                 } else {
                     decrypt(&mut keystore, req, kind).map(Reply::Decrypt)
