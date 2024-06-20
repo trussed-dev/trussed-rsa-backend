@@ -19,13 +19,14 @@ use rsa::{
 use trussed::{
     api::{reply, request, Reply, Request},
     backend::Backend,
+    error::Error,
     key,
     platform::Platform,
-    service::{Keystore, ServiceResources},
+    service::ServiceResources,
+    store::keystore::Keystore,
     types::{
         CoreContext, KeyId, KeySerialization, Mechanism, Message, Signature, SignatureSerialization,
     },
-    Error,
 };
 
 #[cfg(feature = "virt")]
