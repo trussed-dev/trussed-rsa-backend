@@ -70,15 +70,17 @@ fn derive_key(
     let base_key_id = &request.base_key;
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), base_key_id)
-        .expect("Failed to load an RSA private key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
     let priv_key = DecodePrivateKey::from_pkcs8_der(&priv_key_der)
-        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     // Derive and store public key
     let pub_key_der = RsaPublicKey::from(&priv_key)
         .to_public_key_der()
-        .expect("Failed to derive an RSA public key or to serialize it to PKCS#8 DER");
+        .unwrap_or_else(|_| {
+            panic!("Failed to derive an RSA public key or to serialize it to PKCS#8 DER")
+        });
 
     let pub_key_id = keystore.store_key(
         request.attributes.persistence,
@@ -106,7 +108,7 @@ fn deserialize_pkcs_key(
     // We store our keys in PKCS#8 DER format
     let pub_key_der = pub_key
         .to_public_key_der()
-        .expect("Failed to serialize an RSA public key to PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to serialize an RSA public key to PKCS#8 DER"));
 
     let pub_key_id = keystore.store_key(
         request.attributes.persistence,
@@ -139,7 +141,7 @@ fn deserialize_parts_key(
     // We store our keys in PKCS#8 DER format
     let pub_key_der = pub_key
         .to_public_key_der()
-        .expect("Failed to serialize an RSA public key to PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to serialize an RSA public key to PKCS#8 DER"));
 
     let pub_key_id = keystore.store_key(
         request.attributes.persistence,
@@ -178,13 +180,13 @@ fn serialize_key(
     // We rely on the fact that we store the keys in the PKCS#8 DER format already
     let pub_key_der = keystore
         .load_key(key::Secrecy::Public, Some(kind), &key_id)
-        .expect("Failed to load an RSA public key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA public key with the given ID"))
         .material;
 
     let serialized_key = match request.format {
         KeySerialization::RsaParts => {
-            let key: RsaPublicKey =
-                DecodePublicKey::from_public_key_der(&pub_key_der).expect("Failed to parse key");
+            let key: RsaPublicKey = DecodePublicKey::from_public_key_der(&pub_key_der)
+                .unwrap_or_else(|_| panic!("Failed to parse key"));
             let e = &key.e().to_bytes_be();
             let n = &key.n().to_bytes_be();
             RsaPublicParts { e, n }.serialize().map_err(|_err| {
@@ -206,12 +208,12 @@ fn generate_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::GenerateKey, Error> {
-    let priv_key =
-        RsaPrivateKey::new(keystore.rng(), bits).expect("Failed to generate an RSA 2K private key");
+    let priv_key = RsaPrivateKey::new(keystore.rng(), bits)
+        .unwrap_or_else(|_| panic!("Failed to generate an RSA 2K private key"));
 
     let priv_key_der = priv_key
         .to_pkcs8_der()
-        .expect("Failed to serialize an RSA private key to PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to serialize an RSA private key to PKCS#8 DER"));
 
     let priv_key_id = keystore.store_key(
         request.attributes.persistence,
@@ -231,11 +233,11 @@ fn sign(
 
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
-        .expect("Failed to load an RSA private key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
 
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
-        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     // RSA lib takes in a hash value to sign, not raw data.
     // We assume we get digest into this function, too.
@@ -256,7 +258,8 @@ fn sign(
         error!("Failed to sign message: {:?}", _err);
         Error::InternalError
     })?;
-    let our_signature = Signature::from_slice(&native_signature.to_bytes()).unwrap();
+    let our_signature =
+        Signature::from_slice(&native_signature.to_bytes()).unwrap_or_else(|_| panic!());
 
     Ok(reply::Sign {
         signature: our_signature,
@@ -281,11 +284,11 @@ fn verify(
 
     let pub_key_der = keystore
         .load_key(key::Secrecy::Public, Some(kind), &key_id)
-        .expect("Failed to load an RSA private key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
 
     let pub_key = RsaPublicKey::from_public_key_der(&pub_key_der)
-        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     let verification_ok = pub_key
         .verify(
@@ -310,10 +313,10 @@ fn decrypt(
 
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
-        .expect("Failed to load an RSA private key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
-        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     let res = priv_key
         .decrypt(Pkcs1v15Encrypt, &request.message)
@@ -341,10 +344,10 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
 ) -> Result<Bytes<N>, Error> {
     let priv_key_der = keystore
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
-        .expect("Failed to load an RSA private key with the given ID")
+        .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
     let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
-        .expect("Failed to deserialize an RSA private key from PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     let c = rsa::BigUint::from_bytes_be(plaintext);
     let res = rsa::hazmat::rsa_decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
@@ -356,8 +359,10 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
         let expected_len = bits / 8;
         assert!(data.len() <= expected_len);
         let mut bytes = Bytes::new();
-        bytes.resize(expected_len - data.len(), 0).unwrap();
-        bytes.extend_from_slice(data).unwrap();
+        bytes
+            .resize(expected_len - data.len(), 0)
+            .unwrap_or_else(|_| panic!());
+        bytes.extend_from_slice(data).unwrap_or_else(|_| panic!());
         bytes
     }
 
@@ -417,7 +422,7 @@ fn unsafe_inject_key(
 
     let private_key_der = private_key
         .to_pkcs8_der()
-        .expect("Failed to serialize an RSA 2K private key to PKCS#8 DER");
+        .unwrap_or_else(|_| panic!("Failed to serialize an RSA 2K private key to PKCS#8 DER"));
 
     let private_key_id = keystore.store_key(
         request.attributes.persistence,
