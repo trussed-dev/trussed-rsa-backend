@@ -1,24 +1,24 @@
 // Copyright (C) Nitrokey GmbH
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
-use trussed::{
+use trussed_core::{
     api::{
         reply,
         request::{DeserializeKey, UnsafeInjectKey},
     },
-    client::{ClientError, ClientResult, CryptoClient},
     types::{
         KeyId, KeySerialization, Location, Mechanism, SignatureSerialization, StorageAttributes,
     },
+    ClientError, ClientResult, CryptoClient,
 };
 
 use crate::{RsaImportFormat, RsaPublicParts};
 
 impl<C: CryptoClient> Rsa2048Pkcs1v15 for C {}
 
-/// Helper trait to work with RSA 2048 bit keys through a [`Client`](trussed::Client)
+/// Helper trait to work with RSA 2048 bit keys through a [`CryptoClient`][]
 ///
-/// This trait is implemented by all implementors of [`CryptoClient`](trussed::client::CryptoClient)
+/// This trait is implemented by all implementors of [`CryptoClient`][]
 pub trait Rsa2048Pkcs1v15: CryptoClient {
     fn generate_rsa2048pkcs_private_key(
         &mut self,
@@ -45,13 +45,13 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
 
     /// Serializes an RSA 2048 bit key.
     ///
-    /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
+    /// The resulting [`serialized_key`](trussed_core::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
     ///# use trussed_rsa_alloc::*;
-    ///# use trussed::{syscall,types::Location::{Volatile,Internal}};
+    ///# use trussed_core::{syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa2048pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa2048pkcs_public_key(sk, Volatile)).key;
@@ -159,9 +159,9 @@ pub trait Rsa2048Pkcs1v15: CryptoClient {
 
 impl<C: CryptoClient> Rsa3072Pkcs1v15 for C {}
 
-/// Helper trait to work with RSA 3072 bit keys through a [`Client`](trussed::Client)
+/// Helper trait to work with RSA 3072 bit keys through a [`CryptoClient`][]
 ///
-/// This trait is implemented by all implementors of [`CryptoClient`](trussed::client::CryptoClient)
+/// This trait is implemented by all implementors of [`CryptoClient`][]
 pub trait Rsa3072Pkcs1v15: CryptoClient {
     fn generate_rsa3072pkcs_private_key(
         &mut self,
@@ -188,13 +188,13 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
 
     /// Serializes an RSA 3072 bit key.
     ///
-    /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
+    /// The resulting [`serialized_key`](trussed_core::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
     ///# use trussed_rsa_alloc::*;
-    ///# use trussed::{syscall,types::Location::{Volatile,Internal}};
+    ///# use trussed_core::{syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa3072pkcs_public_key(sk, Volatile)).key;
@@ -302,9 +302,9 @@ pub trait Rsa3072Pkcs1v15: CryptoClient {
 
 impl<C: CryptoClient> Rsa4096Pkcs1v15 for C {}
 
-/// Helper trait to work with RSA 4096 bit keys through a [`Client`](trussed::Client)
+/// Helper trait to work with RSA 4096 bit keys through a [`CryptoClient`][]
 ///
-/// This trait is implemented by all implementors of [`CryptoClient`](trussed::client::CryptoClient)
+/// This trait is implemented by all implementors of [`CryptoClient`][]
 pub trait Rsa4096Pkcs1v15: CryptoClient {
     fn generate_rsa4096pkcs_private_key(
         &mut self,
@@ -331,13 +331,13 @@ pub trait Rsa4096Pkcs1v15: CryptoClient {
 
     /// Serializes an RSA 4096 bit key.
     ///
-    /// The resulting [`serialized_key`](trussed::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
+    /// The resulting [`serialized_key`](trussed_core::api::reply::SerializeKey::serialized_key) contains a buffer of the parts of the key
     /// as a serialized [`RsaPublicParts`](crate::RsaPublicParts):
     /// ```
     ///# #[cfg(feature = "virt")]
     ///# {
     ///# use trussed_rsa_alloc::*;
-    ///# use trussed::{syscall,types::Location::{Volatile,Internal}};
+    ///# use trussed_core::{syscall,types::Location::{Volatile,Internal}};
     ///# virt::with_ram_client("rsa tests", |mut client| {
     ///# let sk = syscall!(client.generate_rsa4096pkcs_private_key(Internal)).key;
     ///# let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;

@@ -43,6 +43,18 @@ pub use types::{RsaImportFormat, RsaPublicParts};
 mod crypto_traits;
 pub use crypto_traits::{Rsa2048Pkcs1v15, Rsa3072Pkcs1v15, Rsa4096Pkcs1v15};
 
+pub const MECHANISMS: &[Mechanism] = &[
+    Mechanism::Rsa2048Pkcs1v15,
+    Mechanism::Rsa3072Pkcs1v15,
+    Mechanism::Rsa4096Pkcs1v15,
+    #[cfg(feature = "raw")]
+    Mechanism::Rsa2048Raw,
+    #[cfg(feature = "raw")]
+    Mechanism::Rsa3072Raw,
+    #[cfg(feature = "raw")]
+    Mechanism::Rsa4096Raw,
+];
+
 /// Trussed [`Backend`][] implementation adding support for RSA
 ///
 /// This implementation is done in software and requieres an allocator

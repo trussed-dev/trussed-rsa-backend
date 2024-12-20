@@ -19,7 +19,8 @@ postcard = { version = "0.7", default-features = false, features = ["heapless"] 
 rsa = { version = "0.9", default-features = false, features = ["sha2"]}
 serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 
-trussed = "0.1"
+trussed = { version = "0.1", default-features = false }
+trussed-core = { version = "0.1.0-rc.1", features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
 
 [dev-dependencies]
 hex-literal = "0.3.4"
@@ -28,6 +29,7 @@ delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
 rand = "0.8.5"
+trussed = { version = "0.1", default-features = false, features = ["certificate-client", "clients-1", "crypto-client"] }
 
 [features]
 
@@ -45,7 +47,7 @@ log-warn = []
 log-error = []
 
 [patch.crates-io]
-trussed = { git = "https://github.com/Nitrokey/trussed", rev = "6b9a43fbaaf34fe8d69fac0021f8130dd9a436c9" }
+trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
 
 [profile.dev.package.rsa]
 opt-level = 2

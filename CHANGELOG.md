@@ -9,6 +9,9 @@ SPDX-License-Identifier: CC0-1.0
 
 [Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.2.0...HEAD
 
+- Use `trussed-core` and remove default features for `trussed`.
+- Add `MECHANISMS` constant with the implemented mechanisms.
+
 ## [v0.2.1][] (2024-06-21)
 
 [v0.2.1]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.2.0...v0.2.1
