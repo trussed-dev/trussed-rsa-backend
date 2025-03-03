@@ -3,7 +3,7 @@
 
 use heapless_bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use trussed::config::MAX_KEY_MATERIAL_LENGTH;
+use trussed::config::MAX_SERIALIZED_KEY_LENGTH;
 
 /// Error type
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
@@ -40,7 +40,7 @@ pub struct RsaPublicParts<'d> {
 }
 
 impl<'d> RsaPublicParts<'d> {
-    pub fn serialize(&self) -> Result<Bytes<MAX_KEY_MATERIAL_LENGTH>, Error> {
+    pub fn serialize(&self) -> Result<Bytes<MAX_SERIALIZED_KEY_LENGTH>, Error> {
         use postcard::Error as PError;
         let vec = postcard::to_vec(self).map_err(|err| match err {
             PError::SerializeBufferFull => Error {
@@ -76,7 +76,7 @@ pub struct RsaImportFormat<'d> {
 }
 
 impl<'d> RsaImportFormat<'d> {
-    pub fn serialize(&self) -> Result<Bytes<MAX_KEY_MATERIAL_LENGTH>, Error> {
+    pub fn serialize(&self) -> Result<Bytes<MAX_SERIALIZED_KEY_LENGTH>, Error> {
         use postcard::Error as PError;
         let vec = postcard::to_vec(self).map_err(|err| match err {
             PError::SerializeBufferFull => Error {
