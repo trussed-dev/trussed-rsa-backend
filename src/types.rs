@@ -3,7 +3,7 @@
 
 use heapless_bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use trussed::config::MAX_SERIALIZED_KEY_LENGTH;
+use trussed::types::SerializedKey;
 
 /// Error type
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
