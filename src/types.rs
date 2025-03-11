@@ -40,7 +40,7 @@ pub struct RsaPublicParts<'d> {
 }
 
 impl<'d> RsaPublicParts<'d> {
-    pub fn serialize(&self) -> Result<Bytes<MAX_SERIALIZED_KEY_LENGTH>, Error> {
+    pub fn serialize(&self) -> Result<SerializedKey, Error> {
         use postcard::Error as PError;
         let vec = postcard::to_vec(self).map_err(|err| match err {
             PError::SerializeBufferFull => Error {
