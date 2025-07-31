@@ -7,10 +7,17 @@ SPDX-License-Identifier: CC0-1.0
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.3.0...HEAD
+
+-
+
+## [v0.3.0][] (2025-07-31)
+
+[v0.3.0]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.2.1...v0.3.0
 
 - Use `trussed-core` and remove default features for `trussed`.
 - Add `MECHANISMS` constant with the implemented mechanisms.
+- Use `SerializedKey` instead of `Bytes<MAX_KEY_MATERIAL_LENGTH>` when serializing keys.
 
 ## [v0.2.1][] (2024-06-21)
 

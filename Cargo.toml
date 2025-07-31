@@ -3,7 +3,7 @@
 
 [package]
 name = "trussed-rsa-alloc"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 description = "Trussed backend adding support for the RSA algorithm using an allocator"
 authors = ["Nitrokey GmbH <info@nitrokey.com>"]
