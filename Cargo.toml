@@ -1,26 +1,37 @@
 # Copyright (C) Nitrokey GmbH
 # SPDX-License-Identifier: CC0-1.0
 
+[workspace]
+members = ["types"]
+
+[workspace.package]
+authors = ["Nitrokey GmbH <info@nitrokey.com>"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+
+[workspace.dependencies]
+heapless-bytes = "0.3"
+trussed-core = "0.1"
+
 [package]
 name = "trussed-rsa-alloc"
 version = "0.3.0"
-edition = "2021"
 description = "Trussed backend adding support for the RSA algorithm using an allocator"
-authors = ["Nitrokey GmbH <info@nitrokey.com>"]
-license = "Apache-2.0 OR MIT"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 rust-version = "1.66"
 keywords = ["trussed", "rsa", "no-std"]
 
 [dependencies]
+heapless-bytes.workspace = true
 delog = "0.1.6"
-heapless-bytes = "0.3.0"
 num-bigint-dig = { version = "0.8.2", default-features = false }
-postcard = { version = "0.7", default-features = false, features = ["heapless"] }
 rsa = { version = "0.9", default-features = false, features = ["sha2"]}
-serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 
 trussed = { version = "0.1", default-features = false }
-trussed-core = { version = "0.1.0-rc.1", features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
+trussed-core = { workspace = true, features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
+trussed-rsa-types = "0.1"
 
 [dev-dependencies]
 hex-literal = "0.3.4"
@@ -49,6 +60,7 @@ log-error = []
 
 [patch.crates-io]
 trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
+trussed-rsa-types.path = "types"
 
 [profile.dev.package.rsa]
 opt-level = 2

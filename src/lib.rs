@@ -27,6 +27,7 @@ use trussed::{
     },
     Error,
 };
+use trussed_rsa_types::{RsaImportFormat, RsaPublicParts};
 
 #[cfg(feature = "virt")]
 pub mod virt;
@@ -38,8 +39,6 @@ generate_macros!();
 #[macro_use]
 extern crate alloc;
 
-mod types;
-pub use types::{RsaImportFormat, RsaPublicParts};
 mod crypto_traits;
 pub use crypto_traits::{Rsa2048Pkcs1v15, Rsa3072Pkcs1v15, Rsa4096Pkcs1v15};
 

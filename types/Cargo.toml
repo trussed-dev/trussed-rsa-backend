@@ -1,0 +1,17 @@
+# Copyright (C) Nitrokey GmbH
+# SPDX-License-Identifier: CC0-1.0
+
+[package]
+name = "trussed-rsa-types"
+version = "0.1.0"
+edition = "2024"
+description = "Helper types for the trussed-rsa-alloc backend"
+authors = ["Nitrokey GmbH <info@nitrokey.com>"]
+license = "Apache-2.0 OR MIT"
+keywords = ["trussed", "rsa", "no-std"]
+
+[dependencies]
+heapless-bytes.workspace = true
+postcard = { version = "0.7", default-features = false, features = ["heapless"] }
+serde = { version = "1.0.152", default-features = false, features = ["derive"] }
+trussed-core.workspace = true
