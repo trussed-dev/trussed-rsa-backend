@@ -3,7 +3,7 @@
 
 use heapless_bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use trussed::types::SerializedKey;
+use trussed_core::types::SerializedKey;
 
 /// Error type
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
@@ -52,6 +52,7 @@ impl<'d> RsaPublicParts<'d> {
         })?;
         Ok(Bytes::from(vec))
     }
+
     pub fn deserialize(data: &'d [u8]) -> Result<Self, Error> {
         postcard::from_bytes(data).map_err(|_err| Error {
             kind: ErrorKind::Deseralization,
@@ -88,6 +89,7 @@ impl<'d> RsaImportFormat<'d> {
         })?;
         Ok(Bytes::from(vec))
     }
+
     pub fn deserialize(data: &'d [u8]) -> Result<Self, Error> {
         postcard::from_bytes(data).map_err(|_err| Error {
             kind: ErrorKind::Deseralization,

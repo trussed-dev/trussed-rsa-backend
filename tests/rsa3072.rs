@@ -14,6 +14,7 @@ use trussed::types::Mechanism;
 use trussed::types::StorageAttributes;
 
 use trussed_rsa_alloc::*;
+use trussed_rsa_types::*;
 
 use hex_literal::hex;
 use num_bigint_dig::BigUint;
