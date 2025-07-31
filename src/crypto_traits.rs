@@ -9,7 +9,7 @@ use trussed_core::{
     types::{
         KeyId, KeySerialization, Location, Mechanism, SignatureSerialization, StorageAttributes,
     },
-    ClientError, ClientResult, CryptoClient,
+    {ClientError, ClientResult, CryptoClient},
 };
 use trussed_rsa_types::{RsaImportFormat, RsaPublicParts};
 

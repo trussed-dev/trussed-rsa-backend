@@ -10,6 +10,9 @@ SPDX-License-Identifier: CC0-1.0
 [Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.3.0...HEAD
 
 - Move `RsaImportFormat` and `RsaPublicParts` to the `trussed-rsa-types` crate.
+- Update dependencies:
+  - `heapless-bytes` v0.5
+  - `trussed-core` v0.2
 
 ## [v0.3.0][] (2025-07-31)
 

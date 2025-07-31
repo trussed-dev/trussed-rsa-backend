@@ -11,8 +11,8 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/trussed-dev/trussed-rsa-backend"
 
 [workspace.dependencies]
-heapless-bytes = "0.3"
-trussed-core = "0.1"
+heapless-bytes = "0.5"
+trussed-core = "0.2"
 
 [package]
 name = "trussed-rsa-alloc"
@@ -42,10 +42,9 @@ delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
 rand = "0.8.5"
-trussed = { version = "0.1", default-features = false, features = ["certificate-client", "clients-1", "crypto-client"] }
+trussed = { version = "0.1", default-features = false, features = ["certificate-client", "crypto-client"] }
 
 [features]
-
 virt = ["std", "trussed/virt"]
 std = []
 
@@ -61,7 +60,7 @@ log-warn = []
 log-error = []
 
 [patch.crates-io]
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
+trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "0b65280d69be541b8771f7756139826332c7d674" }
 trussed-rsa-types.path = "types"
 
 [profile.dev.package.rsa]

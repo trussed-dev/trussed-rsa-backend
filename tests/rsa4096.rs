@@ -5,13 +5,13 @@
 
 use rsa::sha2::Sha512;
 use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, Pkcs1v15Sign};
-use trussed::client::CryptoClient;
 use trussed::syscall;
 use trussed::types::KeyId;
 use trussed::types::KeySerialization;
 use trussed::types::Location::*;
 use trussed::types::Mechanism;
 use trussed::types::StorageAttributes;
+use trussed_core::CryptoClient;
 
 use trussed_rsa_alloc::*;
 use trussed_rsa_types::*;

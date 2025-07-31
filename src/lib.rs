@@ -270,7 +270,7 @@ fn sign(
         Error::InternalError
     })?;
     let our_signature =
-        Signature::from_slice(&native_signature.to_bytes()).unwrap_or_else(|_| panic!());
+        Signature::try_from(&*native_signature.to_bytes()).unwrap_or_else(|_| panic!());
 
     Ok(reply::Sign {
         signature: our_signature,
@@ -337,7 +337,7 @@ fn decrypt(
         })?;
 
     Ok(reply::Decrypt {
-        plaintext: Some(Bytes::from_slice(&res).map_err(|_| {
+        plaintext: Some(Bytes::try_from(&*res).map_err(|_| {
             error!("Failed type conversion");
             Error::InternalError
         })?),

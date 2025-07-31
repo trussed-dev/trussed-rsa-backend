@@ -23,19 +23,17 @@ impl Dispatch for Dispatcher {
     }
 }
 
-use std::path::PathBuf;
 use trussed::{
     backend::{Backend, BackendId, Dispatch},
-    virt::{self, Filesystem, Ram, StoreProvider},
+    virt::{self, StoreConfig},
     Platform,
 };
 
-pub type Client<S, D = Dispatcher> = virt::Client<S, D>;
+pub type Client<'a, D = Dispatcher> = virt::Client<'a, D>;
 
-pub fn with_client<S, R, F>(store: S, client_id: &str, f: F) -> R
+pub fn with_client<R, F>(store: StoreConfig, client_id: &str, f: F) -> R
 where
-    F: FnOnce(Client<S>) -> R,
-    S: StoreProvider,
+    F: FnOnce(Client) -> R,
 {
     virt::with_platform(store, |platform| {
         platform.run_client_with_backends(
@@ -47,17 +45,9 @@ where
     })
 }
 
-pub fn with_fs_client<P, R, F>(internal: P, client_id: &str, f: F) -> R
-where
-    F: FnOnce(Client<Filesystem>) -> R,
-    P: Into<PathBuf>,
-{
-    with_client(Filesystem::new(internal), client_id, f)
-}
-
 pub fn with_ram_client<R, F>(client_id: &str, f: F) -> R
 where
-    F: FnOnce(Client<Ram>) -> R,
+    F: FnOnce(Client) -> R,
 {
-    with_client(Ram::default(), client_id, f)
+    with_client(StoreConfig::ram(), client_id, f)
 }

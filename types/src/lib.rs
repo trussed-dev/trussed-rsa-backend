@@ -1,6 +1,8 @@
 // Copyright (C) Nitrokey GmbH
 // SPDX-License-Identifier: Apache-2.0 or MIT
 
+#![no_std]
+
 use heapless_bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use trussed_core::types::SerializedKey;
@@ -25,6 +27,16 @@ pub struct Error {
     kind: ErrorKind,
 }
 
+pub(crate) fn postcard_serialize_bytes<T: serde::Serialize, const N: usize>(
+    object: &T,
+) -> postcard::Result<Bytes<N>> {
+    let mut vec = Bytes::new();
+    vec.resize_to_capacity();
+    let serialized = postcard::to_slice(object, &mut vec)?.len();
+    vec.resize(serialized, 0).unwrap();
+    Ok(vec)
+}
+
 /// Structure containing the public part of an RSA key
 ///
 /// Given how Trussed extensions are implemented, this structure cannot be sent as-is to the backend,
@@ -42,15 +54,14 @@ pub struct RsaPublicParts<'d> {
 impl<'d> RsaPublicParts<'d> {
     pub fn serialize(&self) -> Result<SerializedKey, Error> {
         use postcard::Error as PError;
-        let vec = postcard::to_vec(self).map_err(|err| match err {
+        postcard_serialize_bytes(self).map_err(|err| match err {
             PError::SerializeBufferFull => Error {
                 kind: ErrorKind::SerializeBufferFull,
             },
             _ => Error {
                 kind: ErrorKind::SerializeCustom,
             },
-        })?;
-        Ok(Bytes::from(vec))
+        })
     }
 
     pub fn deserialize(data: &'d [u8]) -> Result<Self, Error> {
@@ -79,15 +90,14 @@ pub struct RsaImportFormat<'d> {
 impl<'d> RsaImportFormat<'d> {
     pub fn serialize(&self) -> Result<SerializedKey, Error> {
         use postcard::Error as PError;
-        let vec = postcard::to_vec(self).map_err(|err| match err {
+        postcard_serialize_bytes(self).map_err(|err| match err {
             PError::SerializeBufferFull => Error {
                 kind: ErrorKind::SerializeBufferFull,
             },
             _ => Error {
                 kind: ErrorKind::SerializeCustom,
             },
-        })?;
-        Ok(Bytes::from(vec))
+        })
     }
 
     pub fn deserialize(data: &'d [u8]) -> Result<Self, Error> {
