@@ -16,7 +16,7 @@ trussed-core = "0.2"
 
 [package]
 name = "trussed-rsa-alloc"
-version = "0.3.0"
+version = "0.4.0"
 description = "Trussed backend adding support for the RSA algorithm using an allocator"
 edition.workspace = true
 authors.workspace = true
@@ -33,7 +33,7 @@ rsa = { version = "0.9", default-features = false, features = ["sha2"]}
 
 trussed = { version = "0.1", default-features = false }
 trussed-core = { workspace = true, features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
-trussed-rsa-types = "0.1"
+trussed-rsa-types = "0.2"
 
 [dev-dependencies]
 hex-literal = "0.3.4"

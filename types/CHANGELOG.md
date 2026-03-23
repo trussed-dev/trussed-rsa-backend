@@ -5,7 +5,11 @@ SPDX-License-Identifier: CC0-1.0
 
 # Changelog
 
-## [Unreleased](https://github.com/trussed-dev/trussed-rsa-backend/compare/types-v0.1.0...HEAD)
+## [Unreleased](https://github.com/trussed-dev/trussed-rsa-backend/compare/types-v0.2.0...HEAD)
+
+-
+
+## [v0.2.0](https://github.com/trussed-dev/trussed-rsa-backend/releases/tag/types-v0.2.0)
 
 - Update dependencies:
   - `heapless-bytes` v0.5
