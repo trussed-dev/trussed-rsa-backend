@@ -16,9 +16,9 @@ impl Dispatch for Dispatcher {
         &mut self,
         _backend: &Self::BackendId,
         ctx: &mut trussed::types::Context<Self::Context>,
-        request: &trussed::api::Request,
+        request: &trussed_core::api::Request,
         resources: &mut trussed::service::ServiceResources<P>,
-    ) -> Result<trussed::Reply, trussed::Error> {
+    ) -> Result<trussed_core::api::Reply, trussed_core::Error> {
         SoftwareRsa.request(&mut ctx.core, &mut ctx.backends, request, resources)
     }
 }

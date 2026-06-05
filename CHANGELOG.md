@@ -9,7 +9,7 @@ SPDX-License-Identifier: CC0-1.0
 
 [Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.4.0...HEAD
 
--
+- Update to `trussed` v0.2.0-rc.1
 
 ## [v0.4.0][] (2026-03-23)
 

@@ -5,12 +5,12 @@
 
 use rsa::sha2::Sha384;
 use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, Pkcs1v15Sign};
-use trussed::syscall;
-use trussed::types::KeyId;
-use trussed::types::KeySerialization;
-use trussed::types::Location::*;
-use trussed::types::Mechanism;
-use trussed::types::StorageAttributes;
+use trussed_core::syscall;
+use trussed_core::types::KeyId;
+use trussed_core::types::KeySerialization;
+use trussed_core::types::Location::*;
+use trussed_core::types::Mechanism;
+use trussed_core::types::StorageAttributes;
 use trussed_core::CryptoClient;
 
 use trussed_rsa_alloc::*;
@@ -47,8 +47,7 @@ fn rsa3072pkcs_derive_key() {
 fn rsa3072pkcs_exists_key() {
     virt::with_ram_client("rsa test", |mut client| {
         let sk = syscall!(client.generate_rsa3072pkcs_private_key(Internal)).key;
-        let key_exists =
-            syscall!(client.exists(trussed::types::Mechanism::Rsa3072Pkcs1v15, sk)).exists;
+        let key_exists = syscall!(client.exists(Mechanism::Rsa3072Pkcs1v15, sk)).exists;
 
         assert!(key_exists);
     })

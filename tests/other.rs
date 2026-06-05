@@ -6,7 +6,7 @@
 //! Test that the core backend is still reachable.
 //! Tests imported from the trussed repo
 
-use trussed::{client::CertificateClient as _, syscall, try_syscall, types::Location::*};
+use trussed_core::{syscall, try_syscall, types::Location::*, CertificateClient as _};
 use trussed_rsa_alloc::virt;
 
 #[test]

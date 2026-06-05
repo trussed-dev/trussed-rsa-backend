@@ -17,14 +17,12 @@ use rsa::{
     Pkcs1v15Sign, RsaPrivateKey, RsaPublicKey,
 };
 use trussed::{
+    backend::Backend, key, platform::Platform, service::ServiceResources, store::Keystore,
+    types::CoreContext,
+};
+use trussed_core::{
     api::{reply, request, Reply, Request},
-    backend::Backend,
-    key,
-    platform::Platform,
-    service::{Keystore, ServiceResources},
-    types::{
-        CoreContext, KeyId, KeySerialization, Mechanism, Message, Signature, SignatureSerialization,
-    },
+    types::{KeyId, KeySerialization, Mechanism, Message, Signature, SignatureSerialization},
     Error,
 };
 use trussed_rsa_types::{RsaImportFormat, RsaPublicParts};
@@ -205,7 +203,7 @@ fn serialize_key(
                 Error::InternalError
             })?
         }
-        KeySerialization::Pkcs8Der => pub_key_der.into(),
+        KeySerialization::Pkcs8Der => pub_key_der,
         _ => {
             return Err(Error::InvalidSerializationFormat);
         }

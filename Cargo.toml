@@ -31,7 +31,7 @@ delog = "0.1.6"
 num-bigint-dig = { version = "0.8.2", default-features = false }
 rsa = { version = "0.9", default-features = false, features = ["sha2"]}
 
-trussed = { version = "0.1", default-features = false }
+trussed = { version = "=0.2.0-rc.1", default-features = false }
 trussed-core = { workspace = true, features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
 trussed-rsa-types = "0.2"
 
@@ -42,7 +42,7 @@ delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
 rand = "0.8.5"
-trussed = { version = "0.1", default-features = false, features = ["certificate-client", "crypto-client"] }
+trussed = { version = "=0.2.0-rc.1", default-features = false, features = ["certificate-client", "crypto-client"] }
 
 [features]
 virt = ["std", "trussed/virt"]
@@ -60,7 +60,6 @@ log-warn = []
 log-error = []
 
 [patch.crates-io]
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "0b65280d69be541b8771f7756139826332c7d674" }
 trussed-rsa-types.path = "types"
 
 [profile.dev.package.rsa]
