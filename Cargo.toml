@@ -16,7 +16,7 @@ trussed-core = "0.2"
 
 [package]
 name = "trussed-rsa-alloc"
-version = "0.4.0"
+version = "0.5.0-rc.1"
 description = "Trussed backend adding support for the RSA algorithm using an allocator"
 edition.workspace = true
 authors.workspace = true
