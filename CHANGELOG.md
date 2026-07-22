@@ -7,15 +7,15 @@ SPDX-License-Identifier: CC0-1.0
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/alloc-v0.5.0-rc.1...HEAD
+[Unreleased]: https://github.com/trussed-dev/trussed-rsa-backend/compare/alloc-v0.5.0...HEAD
 
 -
 
-## [v0.5.0-rc.1][] (2026-06-09)
+## [v0.5.0][] (2026-07-22)
 
-[v0.5.0-rc.1]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.4.0...alloc-v0.5.0-rc.1
+[v0.5.0]: https://github.com/trussed-dev/trussed-rsa-backend/compare/v0.4.0...alloc-v0.5.0
 
-- Update to `trussed` v0.2.0-rc.1
+- Update to `trussed` v0.2.0
 
 ## [v0.4.0][] (2026-03-23)
 
