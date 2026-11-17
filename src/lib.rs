@@ -4,10 +4,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+use core::convert::Infallible;
+
+use crypto_bigint::{BoxedUint, NonZero};
 use heapless_bytes::Bytes;
-use num_bigint_dig::traits::ModInverse;
-use num_bigint_dig::BigUint;
-use rsa::rand_core::{CryptoRng, RngCore};
+use rsa::rand_core::{CryptoRng, TryCryptoRng, TryRng};
 use rsa::sha2::{Sha256, Sha384, Sha512};
 use rsa::{
     pkcs1v15::SigningKey,
@@ -15,7 +16,7 @@ use rsa::{
     signature::hazmat::PrehashSigner,
     signature::SignatureEncoding,
     traits::PublicKeyParts,
-    Pkcs1v15Sign, RsaPrivateKey, RsaPublicKey,
+    Pkcs1v15Sign,
 };
 use trussed::{
     backend::Backend, key, platform::Platform, service::ServiceResources, store::Keystore,
@@ -27,6 +28,33 @@ use trussed_core::{
     Error,
 };
 use trussed_rsa_types::{RsaImportFormat, RsaPublicParts};
+
+struct RandWrapper<'a, T> {
+    inner: &'a mut T,
+}
+
+impl<'a, T> RandWrapper<'a, T> {
+    fn new(inner: &'a mut T) -> Self {
+        Self { inner }
+    }
+}
+
+impl<'a, T: rand_06::CryptoRng + rand_06::RngCore> TryCryptoRng for RandWrapper<'a, T> {}
+impl<'a, T: rand_06::RngCore> TryRng for RandWrapper<'a, T> {
+    type Error = Infallible;
+    fn try_next_u32(&mut self) -> Result<u32, Infallible> {
+        Ok(self.inner.next_u32())
+    }
+
+    fn try_next_u64(&mut self) -> Result<u64, Infallible> {
+        Ok(self.inner.next_u64())
+    }
+
+    fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Infallible> {
+        self.inner.fill_bytes(dst);
+        Ok(())
+    }
+}
 
 #[cfg(feature = "virt")]
 pub mod virt;
@@ -86,7 +114,7 @@ fn derive_key(
         .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     // Derive and store public key
-    let pub_key_der = RsaPublicKey::from(&priv_key)
+    let pub_key_der = rsa::PublicKey::from(&priv_key)
         .to_public_key_der()
         .unwrap_or_else(|_| {
             panic!("Failed to derive an RSA public key or to serialize it to PKCS#8 DER")
@@ -108,7 +136,7 @@ fn deserialize_pkcs_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::DeserializeKey, Error> {
-    let pub_key: RsaPublicKey = DecodePublicKey::from_public_key_der(&request.serialized_key)
+    let pub_key: rsa::PublicKey = DecodePublicKey::from_public_key_der(&request.serialized_key)
         .map_err(|_| Error::InvalidSerializedKey)?;
 
     if pub_key.size() != bits / 8 {
@@ -140,9 +168,11 @@ fn deserialize_parts_key(
         error!("Failed to deserialize key parts");
         Error::InvalidSerializedKey
     })?;
-    let n = BigUint::from_bytes_be(parsed.n);
-    let e = BigUint::from_bytes_be(parsed.e);
-    let pub_key = RsaPublicKey::new_unchecked(n, e);
+    let n =
+        BoxedUint::from_be_slice(parsed.n, bits as u32).map_err(|_| Error::InvalidSerializedKey)?;
+    let e =
+        BoxedUint::from_be_slice(parsed.e, bits as u32).map_err(|_| Error::InvalidSerializedKey)?;
+    let pub_key = rsa::PublicKey::new_unchecked(n, e);
 
     if pub_key.size() != bits / 8 {
         return Err(Error::WrongKeyKind);
@@ -195,10 +225,10 @@ fn serialize_key(
 
     let serialized_key = match request.format {
         KeySerialization::RsaParts => {
-            let key: RsaPublicKey = DecodePublicKey::from_public_key_der(&pub_key_der)
+            let key: rsa::PublicKey = DecodePublicKey::from_public_key_der(&pub_key_der)
                 .unwrap_or_else(|_| panic!("Failed to parse key"));
-            let e = &key.e().to_bytes_be();
-            let n = &key.n().to_bytes_be();
+            let e = &*key.e().to_be_bytes();
+            let n = &*key.n().to_be_bytes();
             RsaPublicParts { e, n }.serialize().map_err(|_err| {
                 error!("Failed to serialize public key {_err:?}");
                 Error::InternalError
@@ -218,7 +248,7 @@ fn generate_key(
     bits: usize,
     kind: key::Kind,
 ) -> Result<reply::GenerateKey, Error> {
-    let priv_key = RsaPrivateKey::new(keystore.rng(), bits)
+    let priv_key = rsa::PrivateKey::new(&mut RandWrapper::new(keystore.rng()), bits)
         .unwrap_or_else(|_| panic!("Failed to generate an RSA 2K private key"));
 
     let priv_key_der = priv_key
@@ -246,7 +276,7 @@ fn sign(
         .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
 
-    let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
+    let priv_key = rsa::PrivateKey::from_pkcs8_der(&priv_key_der)
         .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     // RSA lib takes in a hash value to sign, not raw data.
@@ -297,7 +327,7 @@ fn verify(
         .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
 
-    let pub_key = RsaPublicKey::from_public_key_der(&pub_key_der)
+    let pub_key = rsa::PublicKey::from_public_key_der(&pub_key_der)
         .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     let verification_ok = pub_key
@@ -325,7 +355,7 @@ fn decrypt(
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
         .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
-    let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
+    let priv_key = rsa::PrivateKey::from_pkcs8_der(&priv_key_der)
         .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
     let res = priv_key
@@ -344,7 +374,7 @@ fn decrypt(
 }
 
 #[cfg(feature = "raw")]
-fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
+fn rsa_raw<R: CryptoRng, const N: usize>(
     keystore: &mut impl Keystore,
     key_id: KeyId,
     plaintext: &Message,
@@ -356,10 +386,11 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
         .load_key(key::Secrecy::Secret, Some(kind), &key_id)
         .unwrap_or_else(|_| panic!("Failed to load an RSA private key with the given ID"))
         .material;
-    let priv_key = RsaPrivateKey::from_pkcs8_der(&priv_key_der)
+    let priv_key = rsa::PrivateKey::from_pkcs8_der(&priv_key_der)
         .unwrap_or_else(|_| panic!("Failed to deserialize an RSA private key from PKCS#8 DER"));
 
-    let c = rsa::BigUint::from_bytes_be(plaintext);
+    let c = BoxedUint::from_be_slice(plaintext, bits as u32)
+        .map_err(|_| Error::MechanismParamInvalid)?;
     let res = rsa::hazmat::rsa_decrypt(Some(rng), &priv_key, &c).map_err(|_err| {
         error!("Failed raw decryption: {:?}", _err);
         Error::InternalError
@@ -376,11 +407,11 @@ fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
         bytes
     }
 
-    Ok(to_bytes_with_leading_zeros(&res.to_bytes_be(), bits))
+    Ok(to_bytes_with_leading_zeros(&res.to_be_bytes(), bits))
 }
 
 #[cfg(not(feature = "raw"))]
-fn rsa_raw<R: RngCore + CryptoRng, const N: usize>(
+fn rsa_raw<R: CryptoRng, const N: usize>(
     _keystore: &mut impl Keystore,
     _key: KeyId,
     _plaintext: &Message,
@@ -402,22 +433,22 @@ fn unsafe_inject_key(
         error!("Failed to deserialize RSA key: {_err:?}");
         Error::InvalidSerializedKey
     })?;
-    let e = BigUint::from_bytes_be(data.e);
-    let p = BigUint::from_bytes_be(data.p);
-    let q = BigUint::from_bytes_be(data.q);
+    let e =
+        BoxedUint::from_be_slice(data.e, bits as u32).map_err(|_| Error::InvalidSerializedKey)?;
+    let p =
+        BoxedUint::from_be_slice(data.p, bits as u32).map_err(|_| Error::InvalidSerializedKey)?;
+    let q =
+        BoxedUint::from_be_slice(data.q, bits as u32).map_err(|_| Error::InvalidSerializedKey)?;
     let phi = (&p - 1u64) * (&q - 1u64);
-
-    let d = e
-        .clone()
-        .mod_inverse(&phi)
-        .and_then(|int| int.to_biguint())
+    let d = NonZero::new(phi)
+        .and_then(|phi| e.invert_mod(&phi))
         .ok_or_else(|| {
             warn!("Failed inverse");
             Error::InvalidSerializedKey
         })?;
 
     let private_key =
-        RsaPrivateKey::from_components(&p * &q, e, d, vec![p, q]).map_err(|_err| {
+        rsa::PrivateKey::from_components(&p * &q, e, d, vec![p, q]).map_err(|_err| {
             warn!("Bad private key: {_err:?}");
             Error::InvalidSerializedKey
         })?;
@@ -488,8 +519,15 @@ impl Backend for SoftwareRsa {
             Request::Sign(req) => {
                 let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    rsa_raw(&mut keystore, req.key, &req.message, kind, bits, &mut rng)
-                        .map(|d| Reply::Sign(reply::Sign { signature: d }))
+                    rsa_raw(
+                        &mut keystore,
+                        req.key,
+                        &req.message,
+                        kind,
+                        bits,
+                        &mut RandWrapper::new(&mut rng),
+                    )
+                    .map(|d| Reply::Sign(reply::Sign { signature: d }))
                 } else {
                     sign(&mut keystore, req, kind).map(Reply::Sign)
                 }
@@ -505,8 +543,15 @@ impl Backend for SoftwareRsa {
             Request::Decrypt(req) => {
                 let (bits, kind, raw) = bits_and_kind_from_mechanism(req.mechanism)?;
                 if raw {
-                    rsa_raw(&mut keystore, req.key, &req.message, kind, bits, &mut rng)
-                        .map(|r| Reply::Decrypt(reply::Decrypt { plaintext: Some(r) }))
+                    rsa_raw(
+                        &mut keystore,
+                        req.key,
+                        &req.message,
+                        kind,
+                        bits,
+                        &mut RandWrapper::new(&mut rng),
+                    )
+                    .map(|r| Reply::Decrypt(reply::Decrypt { plaintext: Some(r) }))
                 } else {
                     decrypt(&mut keystore, req, kind).map(Reply::Decrypt)
                 }

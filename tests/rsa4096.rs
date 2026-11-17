@@ -16,9 +16,8 @@ use trussed_core::CryptoClient;
 use trussed_rsa_alloc::*;
 use trussed_rsa_types::*;
 
+use crypto_bigint::BoxedUint;
 use hex_literal::hex;
-use num_bigint_dig::BigUint;
-use rsa::RsaPrivateKey;
 
 // Tests below can be run on a PC using the "virt" feature
 
@@ -90,13 +89,13 @@ fn rsa4096pkcs_encrypt_decrypt() {
         let pk = syscall!(client.derive_rsa4096pkcs_public_key(sk, Volatile)).key;
         let rs_pks_buffer = syscall!(client.serialize_rsa4096_key(pk)).serialized_key;
         let parsed = RsaPublicParts::deserialize(&rs_pks_buffer).unwrap();
-        let pubkey = rsa::RsaPublicKey::new_unchecked(
-            BigUint::from_bytes_be(parsed.n),
-            BigUint::from_bytes_be(parsed.e),
+        let pubkey = rsa::PublicKey::new_unchecked(
+            BoxedUint::from_be_slice(parsed.n, 4096).unwrap(),
+            BoxedUint::from_be_slice(parsed.e, 4096).unwrap(),
         );
         assert_eq!(pubkey.size(), 4096 / 8);
         let encrypted = pubkey
-            .encrypt(&mut rand::thread_rng(), Pkcs1v15Encrypt, &message)
+            .encrypt(&mut rand::rng(), Pkcs1v15Encrypt, &message)
             .unwrap();
 
         let decrypted = syscall!(client.decrypt_rsa4096pkcs(sk, &encrypted))
@@ -136,11 +135,14 @@ fn rsa4096pkcs_inject() {
         let p1 = hex!("ec716ab3b3d9a53a762934e7e3b8c8e2b43e59309bb739f64a92468d3cd0e24a8752e06335caedaa182effe87d4803c073fd8add45955ec14bf2d0ca31840274e8d6b9cd3664422fa1b88e9cb6ebdf83094ff46d9865d0b71fe55702dd9fc67a14c518e9bac7fe9d8ad38dd898058a0ef8dec8366bc0485d5f3cb73858446a2e437c7055114446d78731fc9d0903bd7869d402bc506dfd21d95f1d19b0d59e2b2bf1d64058b0e5241c7bbc05b45eb66b230247ba0d8daa850bae59e62f76e0de632cafcf8ecdccd662ea645597c72b6beb47eb15c3a343be2351c59220d27e81e56f16f1c252a095ef6e7ebdf9fc2a81e387cf17820d78098ec37a2bf8baf523");
         let p2 = hex!("c08013615f1cbba17ad6676b2ccee905fe5d21cbf6c03dd760d630afd8759e6df4ba5aec1ed2a9ef69cc4ad78b1c83245a081be45550613e00bfd282e807fb928a92f08b7737003f805ac4e2c4fa725232c038181ae6b257e410873c254ed438e8450374240a84a65cca22f542d8c983473c260a9bf76af96b978de3e7ee6db6654aa95eef8547636b4fc9b034db914ff781b69fbdcf637f9483966cfa5dda9b072b7359c2afcfd497585ddfdfad90ce6502cfbc693c22884e94da1eaf49c92a4ea342f7edd2bd182869107e6bfd0ba6fee89b731cd9f31c8d90b7d04da342ae23bf6dcc49ca829c4e53e70b7e329ceda62986b41e6ab4910068ac66df44c235");
 
-        let raw = RsaPrivateKey::from_components(
-            BigUint::from_bytes_be(&n),
-            BigUint::from_bytes_be(&e),
-            BigUint::from_bytes_be(&d),
-            vec![BigUint::from_bytes_be(&p1), BigUint::from_bytes_be(&p2)],
+        let raw = rsa::PrivateKey::from_components(
+            BoxedUint::from_be_slice(&n, 4096).unwrap(),
+            BoxedUint::from_be_slice(&e, 4096).unwrap(),
+            BoxedUint::from_be_slice(&d, 4096).unwrap(),
+            vec![
+                BoxedUint::from_be_slice(&p1, 4096).unwrap(),
+                BoxedUint::from_be_slice(&p2, 4096).unwrap(),
+            ],
         )
         .unwrap();
         let pk = raw.to_public_key();
