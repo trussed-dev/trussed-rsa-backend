@@ -13,6 +13,6 @@ keywords = ["trussed", "rsa", "no-std"]
 
 [dependencies]
 heapless-bytes.workspace = true
-postcard = { version = "0.7", default-features = false, features = ["heapless"] }
+postcard = { version = "0.7", default-features = false }
 serde = { version = "1.0.152", default-features = false, features = ["derive"] }
 trussed-core.workspace = true
