@@ -28,8 +28,9 @@ keywords = ["trussed", "rsa", "no-std"]
 [dependencies]
 heapless-bytes.workspace = true
 delog = "0.1.6"
-num-bigint-dig = { version = "0.8.2", default-features = false }
-rsa = { version = "0.9", default-features = false, features = ["sha2"]}
+crypto-bigint = { version = "0.7.11", default-features = false }
+rsa = { version = "0.10", default-features = false, features = ["encoding", "pkcs1v15"]}
+rand_06 = { package = "rand_core", version = "0.6", default-features = false }
 
 trussed = { version = "0.2", default-features = false }
 trussed-core = { workspace = true, features = ["crypto-client", "rsa2048", "rsa3072", "rsa4096"] }
@@ -41,7 +42,7 @@ hex-literal = "0.3.4"
 delog = { version = "0.1.6", features = ["std-log"] }
 test-log = "0.2.11"
 env_logger = "0.10.0"
-rand = "0.8.5"
+rand = "0.10"
 trussed = { version = "0.2", default-features = false, features = ["certificate-client", "crypto-client"] }
 
 [features]
@@ -68,5 +69,8 @@ trussed-rsa-types.path = "types"
 [profile.dev.package.rsa]
 opt-level = 2
 
-[profile.dev.package.num-bigint-dig]
+[profile.dev.package.crypto-bigint]
+opt-level = 2
+
+[profile.dev.package.crypto-primes]
 opt-level = 2
